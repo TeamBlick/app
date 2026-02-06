@@ -31,33 +31,10 @@ class Blick extends StatelessWidget {
                     width: logoWidth,
                   ),
                 ),
-                SizedBox(height: 50),
-                SizedBox(
-                  width: double.infinity,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("아이디", style: TextStyle(color: Colors.grey)),
-                      TextField(
-                        decoration: InputDecoration(hintText: "아이디를 입력해주세요"),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 50),
-                SizedBox(
-                  width: double.infinity,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("비밀번호", style: TextStyle(color: Colors.grey)),
-                      TextField(
-                        obscureText: true,
-                        decoration: InputDecoration(hintText: "비밀번호를 입력해주세요"),
-                      ),
-                    ],
-                  ),
-                ),
+                SizedBox(height: 40),
+                AnotherInput(label: "아이디", hint: "아이디를 입력해주세요",obscure: false,),
+                SizedBox(height: 40),
+                AnotherInput(label: "비밀번호", hint: "비밀번호를 입력해주세요",obscure: true,),
                 SizedBox(height: 50),
                 SizedBox(
                   height: 50,
@@ -76,10 +53,11 @@ class Blick extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("도담도담으로"),
+                    Text("도담도담으로 ",
+                    style: TextStyle(color: Colors.grey),),
                     InkWell(
                       //로그인이라는 글자를 누르도록 만들려면 InkWell안에 어떤 코드를 넣어야하냐면
-                      child: Text("로그인", style: TextStyle(color: Colors.blue)),
+                      child: Text("로그인", style: TextStyle(color: Color.fromRGBO(83,102,251,1))),
                       onTap: () {
                         //누르면 도담도담으로 로그인하는 사이트로 이동시키게
                         //걍 예시로
@@ -94,5 +72,43 @@ class Blick extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class AnotherInput extends StatelessWidget {
+  final String label;
+  final String hint;
+  final bool obscure;
+  const AnotherInput({
+  super.key,
+  required this.label,
+  required this.hint,
+  this.obscure = false,
+  });
+  
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+                  width: double.infinity,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(label, style: TextStyle(color: Colors.grey)),
+                      TextField(
+                        obscureText: obscure,
+                        decoration: InputDecoration(hintText: hint,
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey)
+                          ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black,width: 2)
+                          
+                        )
+                        ),
+                      ),
+                    ],
+                  ),
+                );
   }
 }
