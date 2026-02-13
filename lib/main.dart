@@ -21,7 +21,7 @@ class blick extends StatelessWidget {
             ],//로고,input,버튼 들어갈 예정
           ),
         ),
-      )
-      );
+      ),
+    );
   }
 }
