@@ -1,114 +1,18 @@
 import 'package:flutter/material.dart';
+import 'screens/login_screen.dart'; // 👈 로그인 화면 import
 
 void main() {
-  runApp(Blick());
+  runApp(const MyApp()); // 👈 앱 시작
 }
 
-class Blick extends StatelessWidget {
-  const Blick({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final logoWidth = size.width * 0.32;
-
-    return MaterialApp(
-      home: Scaffold(
-        backgroundColor: Colors.white, //배경색 하얗게 만들기
-        appBar: AppBar(), //앱 위쪽
-        body: SingleChildScrollView(
-          child: Padding(
-            
-            padding: const EdgeInsets.all(40), //사방에 padding 30을 넣을 예정
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start, //왼쪽 정렬
-          
-              children: [
-                Center(
-                  child: Image.asset(
-                    "assets/images/App_Logo.png",
-                    width: logoWidth,
-                  ),
-                ),
-                SizedBox(height: 40),
-                AnotherInput(label: "아이디", hint: "아이디를 입력해주세요",obscure: false,),
-                SizedBox(height: 40),
-                AnotherInput(label: "비밀번호", hint: "비밀번호를 입력해주세요",obscure: true,),
-                SizedBox(height: 50),
-                SizedBox(
-                  height: 50,
-                  width: double.infinity,
-                  child: ElevatedButton(onPressed: () {},
-                    child:Text("로그인",style: TextStyle(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromRGBO(83,102,251,1),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)
-                      )
-                    ),
-                  ),
-                ),
-                SizedBox(height: 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text("도담도담으로 ",
-                    style: TextStyle(color: Colors.grey),),
-                    InkWell(
-                      //로그인이라는 글자를 누르도록 만들려면 InkWell안에 어떤 코드를 넣어야하냐면
-                      child: Text("로그인", style: TextStyle(color: Color.fromRGBO(83,102,251,1))),
-                      onTap: () {
-                        //누르면 도담도담으로 로그인하는 사이트로 이동시키게
-                        //걍 예시로
-                        print("클릭됨");
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: LoginScreen(), // 👈 첫 화면을 LoginScreen으로 지정
     );
-  }
-}
-
-class AnotherInput extends StatelessWidget {
-  final String label;
-  final String hint;
-  final bool obscure;
-  const AnotherInput({
-  super.key,
-  required this.label,
-  required this.hint,
-  this.obscure = false,
-  });
-  
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-                  width: double.infinity,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(label, style: TextStyle(color: Colors.grey)),
-                      TextField(
-                        obscureText: obscure,
-                        decoration: InputDecoration(hintText: hint,
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey)
-                          ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black,width: 2)
-                          
-                        )
-                        ),
-                      ),
-                    ],
-                  ),
-                );
   }
 }
