@@ -1,49 +1,51 @@
 import 'package:flutter/material.dart';
+import 'home/tabs/alarm_tab.dart';
+import 'home/tabs/bus_tab.dart';
+import 'home/tabs/home_tab.dart';
+import 'home/tabs/profile_tab.dart';
+import 'home/tabs/qr_tab.dart';
 
-void main() {
-  runApp(HomeScreen());
-}
-
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final logoWidth = size.width * 0.32;
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
-    return MaterialApp(
-      home: Scaffold(
-        backgroundColor: const Color.fromRGBO(245, 245, 245, 1),
-        appBar: AppBar(),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(40),
-          child: Column(
-            children: [
-              SizedBox(height: 40),
-              SectionCard(title: "귀가버스 탑승 여부", child: Text("탑승")),
-              SizedBox(height: 40),
-              SectionCard(title: "출석체크", child: Text("출석 췤")),
-              SizedBox(height: 40),
-              SectionCard(title: "현재위치", child: Text("현재 위치")),
-            ],
+class _HomeScreenState extends State<HomeScreen> {
+  int currentIndex = 0; // 탭 인덱스 상태
+
+  final pages = const [
+    HomeTab(),
+    BusTab(),
+    QrTab(),
+    AlarmTab(),
+    ProfileTab(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color.fromRGBO(245, 245, 245, 1),
+      appBar: AppBar(),
+      body: IndexedStack(
+        index: currentIndex,
+        children: pages,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: (index) => setState(() => currentIndex = index),
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "홈"),
+          BottomNavigationBarItem(icon: Icon(Icons.bus_alert), label: "버스"),
+          BottomNavigationBarItem(icon: Icon(Icons.qr_code), label: "qr"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notification_add),
+            label: "알림",
           ),
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          items: [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: "홈"),
-            BottomNavigationBarItem(icon: Icon(Icons.bus_alert), label: "버스"),
-            BottomNavigationBarItem(icon: Icon(Icons.qr_code), label: "qr"),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.notification_add),
-              label: "알림",
-            ), //아마 알림일 듯
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: "유저프로필",
-            ), //
-          ],
-        ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "유저프로필"),
+        ],
       ),
     );
   }
@@ -57,6 +59,7 @@ class SectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -64,7 +67,9 @@ class SectionCard extends StatelessWidget {
           BoxShadow(
             // blurRadius 낮게하려면
             blurRadius: 8, //
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(
+              0.1,
+            ), // 문제: Color에는 withValues가 없어 컴파일 오류
             offset: Offset(0, 4), //
           ),
         ],

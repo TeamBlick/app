@@ -1,0 +1,19 @@
+2026.3.9
+바텀 네비 5개 구현 계획
+1) 홈 화면에서 `Scaffold` + `IndexedStack`로 탭별 화면 유지: `enum Tab { home, shuttle, checkin, alerts, profile }`, `currentIndex`로 제어.
+2) `BottomNavigationBar(type: fixed, selectedItemColor: Color(0xFF4F6BFF), unselectedItemColor: Color(0xFFB8B8B8))`로 5개 아이콘/라벨 구성: 홈(집), 셔틀/버스, QR/스캔, 알림, 마이.
+3) `pages = [HomeScreen(), ShuttleScreen(), ScanScreen(), NotificationScreen(), ProfileScreen()]`를 `IndexedStack(children: pages, index: currentIndex)`에 넣어 상태 보존.
+4) 탭 전환 시 `setState`로 `currentIndex`만 갱신; 각 페이지에 `PageStorageKey` 부여해 스크롤 위치 유지.
+5) 상단 상태바/여백 스타일은 현재 홈 UI와 동일하게 유지; 다른 탭은 라우트 푸시 대신 탭 전환으로 처리해 하단바 항상 노출.
+
+2026.3.9 코드 리팩토링 아이디어
+- `main.dart`에 `MaterialApp`과 라우팅 정의를 두고, `HomeScreen`은 순수 화면 위젯으로 분리.
+- 하단바/탭 상태는 `StatefulWidget` + `IndexedStack`으로 전환하여 탭별 상태 보존.
+- 섹션 카드와 버튼/라디오 등을 `widgets/`로 컴포넌트화하고 공통 스타일(색상, 라운드, 그림자)을 `ThemeData`와 상수로 관리.
+- 텍스트/라벨은 `Intl` 혹은 상수로 추출해 다국어와 수정 용이성 확보.
+- 위치/탑승/출석 데이터는 모델 + 리포지토리(서비스) 레이어로 분리하고, 뷰는 비동기 상태를 `ValueNotifier` 또는 `provider`/`riverpod`로 구독.
+
+2026.3.9 작업 로그
+- `HomeScreen`을 `StatefulWidget`으로 전환하고 `IndexedStack` + `BottomNavigationBar`로 5개 탭 구조 구현.
+- 탭별 스텁 화면 파일 생성: `lib/screens/home/tabs/{home,bus,qr,alarm,profile}_tab.dart`.
+- `Color.withValues` 오류를 `withOpacity(0.1)`로 수정.
