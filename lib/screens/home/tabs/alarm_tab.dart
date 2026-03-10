@@ -10,6 +10,7 @@ class AlarmTab extends StatelessWidget {
       padding: const EdgeInsets.all(40),
       child: Column(
         children: const [
+          Align(alignment: Alignment.centerLeft),
           AppLogoHeader(),
           SizedBox(height: 32),
           Center(child: Text('알림 탭')),
