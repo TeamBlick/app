@@ -22,3 +22,8 @@
 - 홈 화면 콘텐츠(섹션 카드들)를 `HomeTab`로 이동해 탭 구조와 일치시킴, `HomeScreen`은 탭 컨테이너 역할만 하도록 정리.
 - `SectionCard`를 `home_tab.dart` 내부로 옮기고 그림자/레이아웃 유지.
 - `AppLogoHeader` 개선: `LayoutBuilder` 기반 크기 계산, 접근성 라벨/에러 처리 추가, 주석 보강.
+12:28 작업 로그
+- 모든 탭(Home/Bus/QR/Alarm/Profile)에 `AppLogoHeader` 배치해 상단 로고 통일.
+- 홈 탭 `BusSelect` 라디오를 `Expanded`로 감싸 가로 overflow 방지.
+- 홈 탭 TODO 정리(overflow 해결 표시).
+
