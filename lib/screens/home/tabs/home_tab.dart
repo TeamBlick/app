@@ -56,15 +56,8 @@ class SectionCard extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 8,
-            color: Colors.black.withOpacity(0.1),
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+        borderRadius: BorderRadius.circular(18)
+        ),
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,7 +87,7 @@ class _AttendanceButton extends StatelessWidget {
     final label = isBoarding ? "탑승" : "미탑승";
 
     return SizedBox(
-      width: double.infinity,
+      width: MediaQuery.of(context).size.width * 0.25,
       height: 52,
       child: ElevatedButton(
         onPressed: () {},
