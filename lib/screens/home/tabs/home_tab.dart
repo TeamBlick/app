@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../widgets/app_logo_header.dart';
-import '../../../widgets/radio_buttom.dart';
 import '../../../widgets/kakaoMapWidget.dart';
+import '../../../widgets/radio_buttom.dart';
+import '../../../widgets/section_card.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -46,35 +47,6 @@ class _HomeTabState extends State<HomeTab> {
   }
 }
 
-class SectionCard extends StatelessWidget {
-  final String title;
-  final Widget child;
-  const SectionCard({super.key, required this.title, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18)
-        ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-          ),
-          const SizedBox(height: 16), // 제목과 내용 사이 간격 16으로 고정
-          child,
-        ],
-      ),
-    );
-  }
-}
-
 class _AttendanceButton extends StatelessWidget {
   const _AttendanceButton({required this.busState});
 
@@ -84,7 +56,7 @@ class _AttendanceButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isBoarding = busState == "탑승";
     // 탑승 상태에 따라 삼항으로 버튼 색/문구 결정
-    final bgColor = isBoarding ? const Color.fromARGB(255,128,215,58) : const Color(0xFFFF3B30);
+    final bgColor = isBoarding ? const Color.fromARGB(255, 128, 215, 58) : const Color(0xFFFF3B30);
     final label = isBoarding ? "탑승" : "미탑승";
 
     return SizedBox(
