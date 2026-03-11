@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../widgets/app_logo_header.dart';
 import '../../../widgets/radio_buttom.dart';
+import '../../../widgets/kakaoMapWidget.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -38,7 +39,7 @@ class _HomeTabState extends State<HomeTab> {
             child: _AttendanceButton(busState: busState),
           ),
           const SizedBox(height: 32),
-          const SectionCard(title: "현재위치", child: Text("현재 위치")),
+          const SectionCard(title: "현재위치", child: KakaoMapWidget()),
         ],
       ),
     );
@@ -66,7 +67,7 @@ class SectionCard extends StatelessWidget {
             title,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16), // 제목과 내용 사이 간격 16으로 고정
           child,
         ],
       ),
@@ -87,7 +88,7 @@ class _AttendanceButton extends StatelessWidget {
     final label = isBoarding ? "탑승" : "미탑승";
 
     return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.25,
+      width: MediaQuery.of(context).size.width * 0.4,
       height: 52,
       child: ElevatedButton(
         onPressed: () {},
