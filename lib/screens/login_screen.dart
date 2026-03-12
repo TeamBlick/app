@@ -68,6 +68,23 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              
+              const SizedBox(height: 12),
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    // TODO: 웹 로그인 연동(SAML/OAuth 등) 시 여기서 처리
+                  },
+                  child: const Text(
+                    '도담도담으로 로그인하기',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Color(0xFF4F6BFF),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              )
             ],
           ),
         ),
