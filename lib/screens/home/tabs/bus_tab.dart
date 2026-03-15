@@ -17,7 +17,7 @@ class _BusTabState extends State<BusTab> {
         children: const [
           SectionCard(title: "버스 변경 위치", child: _BusChangeDropdown()),
           const SizedBox(height: 32),
-          SectionCard(title: "버스 변경 사유", child: Text("ㅗㅑ")),
+          SectionCard(title: "버스 변경 사유", child: BusChangeReason()),
         ],
       ),
     );
@@ -41,31 +41,87 @@ class _BusChangeDropdownState extends State<_BusChangeDropdown> {
       children: [
         const Text(
           "용산역",
-          style: TextStyle(
-            color: Color(0xFF656565),
-            fontSize: 18,
-          ),
+          style: TextStyle(color: Color(0xFF656565), fontSize: 18),
         ),
         SizedBox(
           width: 220,
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: selectedTerminal,
-                  items: const [
-                    DropdownMenuItem(value: "용산역", child: Text("용산역")),
-                    DropdownMenuItem(value: "동대구역", child: Text("동대구역")),
-                    DropdownMenuItem(value: "대곡역", child: Text("대곡역")),
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  setState(() {
+                    selectedTerminal = value; // 선택값 변경
+                  });
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem(value: "용산역", child: Text("용산역")),
+                  PopupMenuItem(value: "동대구역", child: Text("동대구역")),
+                  PopupMenuItem(value: "대곡역", child: Text("대곡역")),
+                ],
+                child: Row(
+                  children: [
+                    Text(
+                      selectedTerminal,
+                      style: const TextStyle(
+                        color: Color(0xFF4F6BFF),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Icon(Icons.unfold_more, color: Color(0xFF4F6BFF)),
                   ],
-                  onChanged: (value) {
-                    setState(() {
-                      selectedTerminal = value!; // 선택값 변경
-                    });
-                  },
                 ),
               ),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class BusChangeReason extends StatefulWidget {
+  const BusChangeReason({super.key});
+  @override
+  State<BusChangeReason> createState() => _BusChangeReasonState();
+}
+
+class _BusChangeReasonState extends State<BusChangeReason> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 200,
+          child: TextFormField(
+            //큰 필드가 안됨 그래서 Textfrom
+            maxLines: null, // expands=true와 함께 사용 시 필수
+            expands: true, //
+            keyboardType: TextInputType.multiline, //키보드도 여러줄 입력 가능하게
+            decoration: InputDecoration(
+              hintText: "버스 변경 사유를 입력해주세요",
+              border: InputBorder.none,
+            ),
+            style: TextStyle(color: Color(0xFF6A6A6A), height: 1.25),
+          ),
+        ),
+        SizedBox(height: 32,),
+        Align(
+          alignment: Alignment.centerRight,
+          child: SizedBox(
+            height: 50,
+            child: ElevatedButton(
+              child: Text("제출하기",style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromRGBO(83, 102, 251, 1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
           ),
         ),
       ],
