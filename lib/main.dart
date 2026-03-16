@@ -10,9 +10,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginScreen(), // 👈 첫 화면을 LoginScreen으로 지정
+      theme: ThemeData(
+        fontFamily: 'Pretendard', // 앱 전체 기본 폰트
+      ),
+      home: const LoginScreen(), // 👈 첫 화면을 LoginScreen으로 지정
     );
   }
 }

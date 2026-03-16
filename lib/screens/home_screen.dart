@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'home/tabs/alarm_tab.dart';
+import 'home/tabs/announcement/announcement_tab.dart';
 import 'home/tabs/bus_tab.dart';
 import 'home/tabs/home_tab.dart';
 import 'home/tabs/profile_tab.dart';

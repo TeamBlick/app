@@ -58,6 +58,18 @@ flutter: # (이 줄은 왼쪽 끝에 붙어 있음)
     - assets/images/App_Logo.png # (스페이스 4칸)
     - assets/icons/ # SVG 아이콘 경로
 
+  fonts:
+    - family: Pretendard
+      fonts:
+        - asset: assets/fonts/Pretendard-Regular.otf
+          weight: 400
+        - asset: assets/fonts/Pretendard-Medium.otf
+          weight: 500
+        - asset: assets/fonts/Pretendard-SemiBold.otf
+          weight: 600
+        - asset: assets/fonts/Pretendard-Bold.otf
+          weight: 700
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

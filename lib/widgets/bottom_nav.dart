@@ -34,7 +34,7 @@ class BottomNav extends StatelessWidget {
         selectedItemColor: const Color(0xFF4F6BFF),
         unselectedItemColor: const Color(0xFFB8B8B8),
         items: List.generate(_iconPaths.length, (index) {
-          final isActive = index == currentIndex; //현재 눌렸는지 확인
+          //final isActive = index == currentIndex; 현재 눌렸는지 확인
           final path = _iconPaths[index]; // 아이콘 경로
           return BottomNavigationBarItem(
             label: '',
