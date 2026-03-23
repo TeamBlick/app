@@ -12,8 +12,16 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   static final Uri _dodamLoginUri = Uri.parse('https://dodam.b1nd.com/');
+
   final idController = TextEditingController();
   final pwController = TextEditingController();
+
+  @override
+  void dispose() {
+    idController.dispose();
+    pwController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +30,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView( // 👈 키보드 올라올 때 대응
+      body: SingleChildScrollView(
+        // 👈 키보드 올라올 때 대응
         child: Padding(
           padding: const EdgeInsets.all(40),
           child: Column(
@@ -60,13 +69,26 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    // 👇 여기서 화면 이동
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HomeScreen(),// HomeScreen에 const 생성자 추가해야 함
-                      ),
-                    );
+                    final id = idController.text.trim();
+                    final pw = pwController.text.trim();
+                    if (id.isEmpty || pw.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('아이디와 비밀번호를 입력해주세요')),
+                      );
+                      return;
+                    }
+                    if (id == 'admin' && pw == '1234') {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomeScreen(),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('아이디 또는 비밀번호가 올바르지 않습니다')),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromRGBO(83, 102, 251, 1),
@@ -80,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 12),
               Center(
                 child: Row(
@@ -90,7 +112,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextButton(
                       onPressed: () async {
                         if (await canLaunchUrl(_dodamLoginUri)) {
-                          await launchUrl(_dodamLoginUri, mode: LaunchMode.externalApplication);
+                          await launchUrl(
+                            _dodamLoginUri,
+                            mode: LaunchMode.externalApplication,
+                          );
                         }
                       },
                       style: TextButton.styleFrom(
@@ -107,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const Text('하기'),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),
