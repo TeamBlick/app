@@ -54,10 +54,26 @@ class AnnouncementCard extends StatelessWidget {
               ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              
               children: [
-                Text(title,style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                Text(date),
-                Text("26.12.30"),],
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(title,style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                        SizedBox(height: 6),
+                        Text(date),
+                      ],
+                      
+                    ),
+                    Text("26.12.30")
+                  ],
+                ),
+              ]
             ),
           ),
         ),

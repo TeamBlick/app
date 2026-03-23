@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../widgets/another_input.dart';
 import 'home_screen.dart'; // 👈 홈 화면 import
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
+
+  static final Uri _dodamLoginUri = Uri.parse('https://dodam.b1nd.com/');
 
   @override
   Widget build(BuildContext context) {
@@ -71,18 +74,29 @@ class LoginScreen extends StatelessWidget {
               
               const SizedBox(height: 12),
               Center(
-                child: TextButton(
-                  onPressed: () {
-                    // TODO: 웹 로그인 연동(SAML/OAuth 등) 시 여기서 처리
-                  },
-                  child: const Text(
-                    '도담도담으로 로그인하기',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xFF4F6BFF),
-                      fontWeight: FontWeight.w600,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('도담도담으로 '),
+                    TextButton(
+                      onPressed: () async {
+                        if (await canLaunchUrl(_dodamLoginUri)) {
+                          await launchUrl(_dodamLoginUri, mode: LaunchMode.externalApplication);
+                        }
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFF4F6BFF),
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(0, 0),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        '로그인',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
                     ),
-                  ),
+                    const Text('하기'),
+                  ],
                 ),
               )
             ],
