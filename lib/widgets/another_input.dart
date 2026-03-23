@@ -4,10 +4,12 @@ class AnotherInput extends StatelessWidget {
   final String label;
   final String hint;
   final bool obscure;
+  final TextEditingController controller;
 
   const AnotherInput({
     super.key,
     required this.label,
+    required this.controller,
     required this.hint,
     this.obscure = false,
   });
@@ -24,7 +26,8 @@ class AnotherInput extends StatelessWidget {
             style: const TextStyle(color: Colors.grey),
           ),
 
-          TextField(
+          TextFormField(
+            controller: controller,
             obscureText: obscure,
             decoration: const InputDecoration(
               enabledBorder: UnderlineInputBorder(

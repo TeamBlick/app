@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../widgets/app_logo_header.dart';
-import '../../../../widgets/section_card.dart';
 
 class AlarmTab extends StatelessWidget {
   const AlarmTab({super.key});

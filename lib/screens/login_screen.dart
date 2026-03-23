@@ -3,10 +3,17 @@ import 'package:url_launcher/url_launcher.dart';
 import '../widgets/another_input.dart';
 import 'home_screen.dart'; // 👈 홈 화면 import
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   static final Uri _dodamLoginUri = Uri.parse('https://dodam.b1nd.com/');
+  final idController = TextEditingController();
+  final pwController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -31,17 +38,19 @@ class LoginScreen extends StatelessWidget {
 
               const SizedBox(height: 40),
 
-              const AnotherInput(
+              AnotherInput(
                 label: "아이디",
                 hint: "아이디를 입력해주세요",
+                controller: idController,
               ),
 
               const SizedBox(height: 40),
 
-              const AnotherInput(
+              AnotherInput(
                 label: "비밀번호",
                 hint: "비밀번호를 입력해주세요",
                 obscure: true,
+                controller: pwController,
               ),
 
               const SizedBox(height: 50),
