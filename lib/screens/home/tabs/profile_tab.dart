@@ -97,13 +97,32 @@ class ProfileTab extends StatelessWidget {
             )
           ),
           const SizedBox(height: 24),
-          TextButton(
-            onPressed: () => _handleLogout(context),
-            child: const Text(
-              "로그아웃",
-              style: TextStyle(color: Colors.red, fontSize: 16),
+          Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(30),
+              onTap: () => _handleLogout(context),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: const Text(
+                  "로그아웃",
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+              ),
             ),
-          ),
+          )
         ],
       ),
     );
