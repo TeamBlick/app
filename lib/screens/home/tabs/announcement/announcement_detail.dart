@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
+import 'announcement_item.dart';
 
 class AnnouncementDetail extends StatelessWidget {
   const AnnouncementDetail({
     super.key,
-    required this.title,
-    required this.description,
-    this.imageUrl,
+    required this.item,
   });
 
-  final String title;
-  final String description;
-  final String? imageUrl;
+  final AnnouncementItem item;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +23,7 @@ class AnnouncementDetail extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              title,
+              item.title,
               style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w700,
@@ -39,7 +36,7 @@ class AnnouncementDetail extends StatelessWidget {
                 width: double.infinity,
                 height: 220,
                 color: Colors.white,
-                child: imageUrl == null
+                child: item.imageUrl == null
                     ? const Center(
                         child: Icon(
                           Icons.image_outlined,
@@ -48,14 +45,14 @@ class AnnouncementDetail extends StatelessWidget {
                         ),
                       )
                     : Image.network(
-                        imageUrl!,
+                        item.imageUrl!,
                         fit: BoxFit.cover,
                       ),
               ),
             ),
             const SizedBox(height: 20),
             Text(
-              description,
+              item.description,
               style: const TextStyle(
                 fontSize: 16,
                 height: 1.5,

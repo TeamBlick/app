@@ -1,25 +1,26 @@
 import 'package:flutter/material.dart';
 import '../../../../widgets/app_logo_header.dart';
 import 'announcement_detail.dart';
+import 'announcement_item.dart';
 
 class AlarmTab extends StatelessWidget {
   const AlarmTab({super.key});
 
   static const _announcements = [
-    _AnnouncementItem(
+    AnnouncementItem(
       title: '귀가버스 차량 정보',
       subtitle: '이미지 보기',
       date: '26.12.30',
       description: '귀가버스 차량 정보 공지 상세 내용입니다.',
       imageUrl: null,
     ),
-    _AnnouncementItem(
+    AnnouncementItem(
       title: '귀가버스 출발 시간 안내',
       subtitle: '시간표 확인',
       date: '26.12.29',
       description: '출발 시간 변경 사항 및 탑승 유의사항 안내입니다.',
     ),
-    _AnnouncementItem(
+    AnnouncementItem(
       title: '버스 탑승 위치 변경',
       subtitle: '위치 안내',
       date: '26.12.28',
@@ -53,11 +54,7 @@ class AlarmTab extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => AnnouncementDetail(
-                          title: item.title,
-                          description: item.description,
-                          imageUrl: item.imageUrl,
-                        ),
+                        builder: (context) => AnnouncementDetail(item: item),
                       ),
                     );
                   },
@@ -135,20 +132,4 @@ class AnnouncementCard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _AnnouncementItem {
-  const _AnnouncementItem({
-    required this.title,
-    required this.subtitle,
-    required this.date,
-    required this.description,
-    this.imageUrl,
-  });
-
-  final String title;
-  final String subtitle;
-  final String date;
-  final String description;
-  final String? imageUrl;
 }
