@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../widgets/app_logo_header.dart';
 import '../../../widgets/section_card.dart';
 
+
 class BusTab extends StatefulWidget {
   const BusTab({super.key});
   @override
@@ -15,6 +16,13 @@ class _BusTabState extends State<BusTab> {
       padding: const EdgeInsets.all(40),
       child: Column(
         children: const [
+          Padding(
+            padding: EdgeInsets.fromLTRB(8, 16, 0, 24),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: AppLogoHeader(), // 로고를 좌측으로 붙임
+            ),
+          ),
           SectionCard(title: "버스 변경 위치", child: _BusChangeDropdown()),
           const SizedBox(height: 16),
           SectionCard(title: "버스 변경 사유", child: BusChangeReason()),
