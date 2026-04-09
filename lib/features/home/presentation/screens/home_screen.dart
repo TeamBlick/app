@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'home/tabs/announcement/announcement_tab.dart';
-import 'home/tabs/bus_tab.dart';
-import 'home/tabs/home_tab.dart';
-import 'home/tabs/profile_tab.dart';
-import 'home/tabs/qr_tab.dart';
-import '../widgets/bottom_nav.dart';
+import 'package:blick/screens/home/tabs/announcement/announcement_tab.dart';
+import 'package:blick/features/bus/presentation/screens/bus_tab.dart';
+import 'home_tab.dart';
+import 'package:blick/features/profile/presentation/screens/profile_tab.dart';
+import 'package:blick/features/qr/presentation/screens/qr_tab.dart';
+import 'package:blick/shared/widgets/bottom_nav.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../widgets/app_logo_header.dart';
-import '../../../widgets/kakaoMapWidget.dart';
-import '../../../widgets/radio_buttom.dart';
-import '../../../widgets/section_card.dart';
+import '../../../../shared/widgets/app_logo_header.dart';
+import '../../../../shared/widgets/kakao_map_widget.dart';
+import '../../../../shared/widgets/radio_buttom.dart';
+import '../../../../shared/widgets/section_card.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});

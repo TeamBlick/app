@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../widgets/another_input.dart';
-import 'home_screen.dart'; // 👈 홈 화면 import
+import 'package:blick/shared/widgets/another_input.dart';
+import 'package:blick/features/home/presentation/screens/home_screen.dart'; // 👈 홈 화면 import
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

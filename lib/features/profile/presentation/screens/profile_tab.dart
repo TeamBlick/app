@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../login_screen.dart';
-import '../../../widgets/app_logo_header.dart';
-import '../../../widgets/section_card.dart';
+import 'package:blick/features/auth/presentation/screens/login_screen.dart';
+import 'package:blick/shared/widgets/app_logo_header.dart';
+import 'package:blick/shared/widgets/section_card.dart';
 
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});

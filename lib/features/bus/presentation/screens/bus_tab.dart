@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../widgets/app_logo_header.dart';
-import '../../../widgets/section_card.dart';
+import 'package:blick/shared/widgets/app_logo_header.dart';
+import 'package:blick/shared/widgets/section_card.dart';
 
 
 class BusTab extends StatefulWidget {
@@ -144,7 +144,7 @@ class _BusChangeReasonState extends State<BusChangeReason> {
           child: SizedBox(
             height: 50,
             child: ElevatedButton(
-              child: Text("제출하기",style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
+              child: const Text("제출하기",style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
               onPressed: reasonController.text.trim().isNotEmpty
                 ? () {
                     print("제출");

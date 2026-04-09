@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../widgets/app_logo_header.dart';
+import 'package:blick/shared/widgets/app_logo_header.dart';
 import 'announcement_detail.dart';
 import 'announcement_item.dart';
 
