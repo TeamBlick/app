@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'announcement_item.dart';
+import 'package:blick/screens/home/tabs/announcement/announcement_item.dart';
 
 class AnnouncementDetail extends StatelessWidget {
   const AnnouncementDetail({

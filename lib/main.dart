@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'features/auth/presentation/screens/login_screen.dart'; // 👈 로그인 화면 import
+import 'package:blick/features/auth/presentation/screens/login_screen.dart'; // 👈 로그인 화면 import
 
 void main() {
   runApp(const MyApp()); // 👈 앱 시작

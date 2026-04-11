@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:blick/shared/widgets/app_logo_header.dart';
-import 'announcement_detail.dart';
-import 'announcement_item.dart';
+import 'package:blick/screens/home/tabs/announcement/announcement_detail.dart';
+import 'package:blick/screens/home/tabs/announcement/announcement_item.dart';
 
 class AlarmTab extends StatelessWidget {
   const AlarmTab({super.key});

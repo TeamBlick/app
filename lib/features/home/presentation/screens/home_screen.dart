@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:blick/screens/home/tabs/announcement/announcement_tab.dart';
 import 'package:blick/features/bus/presentation/screens/bus_tab.dart';
-import 'home_tab.dart';
+import 'package:blick/features/home/presentation/screens/home_tab.dart';
 import 'package:blick/features/profile/presentation/screens/profile_tab.dart';
 import 'package:blick/features/qr/presentation/screens/qr_tab.dart';
 import 'package:blick/shared/widgets/bottom_nav.dart';
