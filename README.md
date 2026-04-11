@@ -1,4 +1,4 @@
-## ✅ Commit Message Convention
+## Commit Message Convention
 
 형식:  
 `<Type> : <Summary>`
