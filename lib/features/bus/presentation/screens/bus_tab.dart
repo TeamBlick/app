@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:blick/shared/widgets/app_logo_header.dart';
 import 'package:blick/shared/widgets/section_card.dart';
 
-
 class BusTab extends StatefulWidget {
   const BusTab({super.key});
   @override
@@ -88,7 +87,6 @@ class _BusChangeDropdownState extends State<_BusChangeDropdown> {
                       ),
                       const SizedBox(width: 6),
                       const Icon(Icons.unfold_more, color: Color(0xFF4F6BFF)),
-                      
                     ],
                   ),
                 ),
@@ -109,6 +107,33 @@ class BusChangeReason extends StatefulWidget {
 
 class _BusChangeReasonState extends State<BusChangeReason> {
   final TextEditingController reasonController = TextEditingController();
+
+  bool get _canSubmit => reasonController.text.trim().isNotEmpty;
+
+  void _submitReason() {
+    final reason = reasonController.text.trim();
+    if (reason.isEmpty) return;
+
+    print("제출: $reason");
+
+    reasonController.clear();
+    setState(() {});
+    FocusScope.of(context).unfocus();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text("제출되었습니다."),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF4A4A4A),
+        margin: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+
 
   @override
   void dispose() {
@@ -138,22 +163,22 @@ class _BusChangeReasonState extends State<BusChangeReason> {
             },
           ),
         ),
-        SizedBox(height: 32,),
+        const SizedBox(height: 32),
         Align(
           alignment: Alignment.centerRight,
           child: SizedBox(
             height: 50,
             child: ElevatedButton(
-              child: const Text("제출하기",style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
-              onPressed: reasonController.text.trim().isNotEmpty
-                ? () {
-                    print("제출");
-                  }
-                : null,
+              
+              child: const Text(
+                "제출하기",
+                style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+              ),
+              onPressed: _canSubmit ? _submitReason : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: reasonController.text.trim().isNotEmpty
-                  ? const Color(0xFF4F6BFF)
-                  : const Color(0xFFB8B8B8),
+                    ? const Color(0xFF4F6BFF)
+                    : const Color(0xFFB8B8B8),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
