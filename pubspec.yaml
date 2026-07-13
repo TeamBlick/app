@@ -61,6 +61,7 @@ flutter: # (이 줄은 왼쪽 끝에 붙어 있음)
 
   assets: # (스페이스 2칸)
     - assets/images/App_Logo.png # (스페이스 4칸)
+    - assets/images/speki.webp
     - assets/icons/ # SVG 아이콘 경로
     - .env
 
