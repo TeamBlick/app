@@ -4,13 +4,19 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:kakao_map_plugin/kakao_map_plugin.dart'; // 카카오맵 플러그인 import
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   await dotenv.load(fileName: '.env');
 
   final kakaoKey = dotenv.env['KAKAO_JAVASCRIPT_KEY'];
 
-  if (kakaoKey == null || kakaoKey.isEmpty) {
-    throw Exception('KAKAO_JAVASCRIPT_KEY가 없습니다.');
+  if (kakaoKey == null || kakaoKey.trim().isEmpty) {
+    throw Exception('KAKAO_JAVASCRIPT_KEY가 .env에 없습니다.');
   }
+
+  AuthRepository.initialize(
+    appKey: kakaoKey,
+  );
 
   runApp(const MyApp());
 }
