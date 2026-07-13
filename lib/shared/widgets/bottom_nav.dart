@@ -26,6 +26,8 @@ class BottomNav extends StatelessWidget {
     return SafeArea(
       top: false,
       child: BottomNavigationBar(
+        backgroundColor: const Color(0xFFFFFFFF),
+        elevation: 0,
         currentIndex: currentIndex,
         onTap: onTap,
         type: BottomNavigationBarType.fixed, // 고정형 네비게이션
