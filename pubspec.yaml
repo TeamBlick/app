@@ -37,6 +37,8 @@ dependencies:
   flutter_svg: ^2.0.10+1
   url_launcher: ^6.3.1
   mobile_scanner: ^7.2.0
+  kakao_map_plugin: ^0.4.0
+  flutter_dotenv: ^6.0.1
 
 dev_dependencies:
   flutter_test:
@@ -59,6 +61,7 @@ flutter: # (이 줄은 왼쪽 끝에 붙어 있음)
   assets: # (스페이스 2칸)
     - assets/images/App_Logo.png # (스페이스 4칸)
     - assets/icons/ # SVG 아이콘 경로
+    - .env
 
   fonts:
     - family: Pretendard

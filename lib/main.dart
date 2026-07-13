@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:blick/features/auth/presentation/screens/login_screen.dart'; // 👈 로그인 화면 import
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:kakao_map_plugin/kakao_map_plugin.dart'; // 카카오맵 플러그인 import
 
-void main() {
-  runApp(const MyApp()); // 👈 앱 시작
+Future<void> main() async {
+  await dotenv.load(fileName: '.env');
+
+  final kakaoKey = dotenv.env['KAKAO_JAVASCRIPT_KEY'];
+
+  if (kakaoKey == null || kakaoKey.isEmpty) {
+    throw Exception('KAKAO_JAVASCRIPT_KEY가 없습니다.');
+  }
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
