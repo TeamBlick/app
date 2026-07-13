@@ -14,7 +14,14 @@ class AnnouncementDetail extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        title: const Text('공지 상세'),
+        title:
+          const Text(
+              '공지사항',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
         backgroundColor: const Color(0xFFF5F5F5),
       ),
       body: SingleChildScrollView(

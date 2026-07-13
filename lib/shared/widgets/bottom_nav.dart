@@ -23,9 +23,7 @@ class BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: BottomNavigationBar(
+    return BottomNavigationBar(
         backgroundColor: const Color(0xFFFFFFFF),
         elevation: 0,
         currentIndex: currentIndex,
@@ -44,7 +42,6 @@ class BottomNav extends StatelessWidget {
             activeIcon: _ActiveIcon(path),
           );
         }),
-      ),
     );
   }
 }

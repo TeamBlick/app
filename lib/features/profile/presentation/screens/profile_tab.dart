@@ -150,7 +150,7 @@ class _InfoRow extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               color: Color(0xFF666666),
               fontWeight: FontWeight.w600,
             ),
@@ -160,7 +160,7 @@ class _InfoRow extends StatelessWidget {
           child: Text(
             value,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               color: valueColor,
               fontWeight: FontWeight.w600,
             ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:blick/shared/widgets/app_logo_header.dart';
 import 'package:blick/screens/home/tabs/announcement/announcement_detail.dart';
 import 'package:blick/screens/home/tabs/announcement/announcement_item.dart';
 
@@ -30,50 +29,65 @@ class AlarmTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(40),
-      child: Column(
-        children: [
-          Align(alignment: Alignment.centerLeft),
-          AppLogoHeader(),
-          SizedBox(height: 32),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
+    return Column(
+      children: [
+        const _AnnouncementHeader(),
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
             itemCount: _announcements.length,
-
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final item = _announcements[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: AnnouncementCard(
-                  title: item.title,
-                  subtitle: item.subtitle,
-                  date: item.date,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AnnouncementDetail(item: item),
-                      ),
-                    );
-                  },
-                ),
+
+              return AnnouncementCard(
+                title: item.title,
+                subtitle: item.subtitle,
+                date: item.date,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AnnouncementDetail(item: item),
+                    ),
+                  );
+                },
               );
             },
           ),
-        ],
+        ),
+      ],
+    );
+  }
+}
+
+class _AnnouncementHeader extends StatelessWidget {
+  const _AnnouncementHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: SizedBox(
+        height: 64,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            const Text(
+              '공지사항',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class AnnouncementCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final String date;
-  final VoidCallback onTap;
-
   const AnnouncementCard({
     super.key,
     required this.title,
@@ -82,53 +96,65 @@ class AnnouncementCard extends StatelessWidget {
     required this.onTap,
   });
 
+  final String title;
+  final String subtitle;
+  final String date;
+  final VoidCallback onTap;
+
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(18),
-      onTap: onTap,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: const [], // 필요 시 그림자 추가
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: SizedBox(
+          height: 84,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 12,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(subtitle),
-                        ],
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                      Text(date),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFFB5B5B5),
+                        ),
+                      ),
                     ],
                   ),
-                ],
-              ),
+                ),
+                Text(
+                  date,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFFB5B5B5),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
