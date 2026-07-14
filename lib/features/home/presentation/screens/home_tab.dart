@@ -17,11 +17,11 @@ class _HomeTabState extends State<HomeTab> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
           const Padding(
-            padding: EdgeInsets.fromLTRB(8, 16, 0, 24),
+            padding: EdgeInsets.fromLTRB(8, 16, 0, 24), // 각각 
             child: Align(
               alignment: Alignment.centerLeft,
               child: AppLogoHeader(), // 로고를 좌측으로 붙임
@@ -66,11 +66,13 @@ class _AttendanceButton extends StatelessWidget {
         onPressed: () {},
         style: ElevatedButton.styleFrom(
           backgroundColor: bgColor,
+          elevation: 0,
+          shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         child: Text(
           label,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18),
         ),
       ),
     );

@@ -12,7 +12,7 @@ class _BusTabState extends State<BusTab> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.all(12),
       child: Column(
         children: const [
           Padding(

@@ -14,7 +14,6 @@ class SectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: const [], // 필요 시 그림자 추가
       ),
       padding: const EdgeInsets.all(20),
       child: Column(
