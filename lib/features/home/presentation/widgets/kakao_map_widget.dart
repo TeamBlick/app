@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kakao_map_plugin/kakao_map_plugin.dart';
 
-/// Kakao 지도 자리를 위한 플레이스홀더 위젯.
-/// 실제 지도 SDK 연동 시 이 파일 내부만 교체하면 됨.
+/// 홈 화면에서 현재 위치를 표시하는 지도 위젯입니다.
 class KakaoMapWidget extends StatelessWidget {
   const KakaoMapWidget({
     super.key,
@@ -10,10 +9,7 @@ class KakaoMapWidget extends StatelessWidget {
     this.subtitle = '동대구역까지 약 12.3km',
   });
 
-  /// 지도를 표시할 높이.
   final double height;
-
-  /// 부가 설명(거리 등).
   final String subtitle;
 
   @override
@@ -32,22 +28,17 @@ class KakaoMapWidget extends StatelessWidget {
             width: double.infinity,
             height: height,
             child: KakaoMap(
-              center: LatLng(
-                35.8779,
-                128.6286,
-              ),
+              center: LatLng(35.8779, 128.6286),
               markers: [
                 Marker(
                   markerId: 'dongdaegu',
-                  latLng: LatLng(
-                    35.8779,
-                    128.6286,
-                  ),)
+                  latLng: LatLng(35.8779, 128.6286),
+                ),
               ],
             ),
           ),
-        )
-      ]
+        ),
+      ],
     );
   }
 }
