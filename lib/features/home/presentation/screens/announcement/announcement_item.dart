@@ -1,3 +1,4 @@
+/// 공지사항 화면에서 사용하는 표시용 모델입니다.
 class AnnouncementItem {
   const AnnouncementItem({
     required this.title,
