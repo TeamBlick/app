@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:blick/features/home/presentation/widgets/kakao_map_widget.dart';
+import 'package:blick/features/home/presentation/widgets/radio_button.dart';
 import 'package:blick/shared/widgets/app_logo_header.dart';
-import 'package:blick/shared/widgets/kakao_map_widget.dart';
-import 'package:blick/shared/widgets/radio_buttom.dart';
 import 'package:blick/shared/widgets/section_card.dart';
 
 class HomeTab extends StatefulWidget {
@@ -21,7 +21,7 @@ class _HomeTabState extends State<HomeTab> {
       child: Column(
         children: [
           const Padding(
-            padding: EdgeInsets.fromLTRB(8, 16, 0, 24), // 각각 
+            padding: EdgeInsets.fromLTRB(8, 16, 0, 24), // 각각
             child: Align(
               alignment: Alignment.centerLeft,
               child: AppLogoHeader(), // 로고를 좌측으로 붙임
@@ -29,7 +29,7 @@ class _HomeTabState extends State<HomeTab> {
           ),
           SectionCard(
             title: "귀가버스 탑승 여부",
-            child: RadioButtom(
+            child: RadioButton(
               initialValue: busState,
               onChanged: (value) => setState(() => busState = value),
             ),
@@ -56,7 +56,9 @@ class _AttendanceButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isBoarding = busState == "탑승";
     // 탑승 상태에 따라 삼항으로 버튼 색/문구 결정
-    final bgColor = isBoarding ? const Color.fromARGB(255, 128, 215, 58) : const Color(0xFFFF3B30);
+    final bgColor = isBoarding
+        ? const Color.fromARGB(255, 128, 215, 58)
+        : const Color(0xFFFF3B30);
     final label = isBoarding ? "탑승" : "미탑승";
 
     return SizedBox(
@@ -68,11 +70,17 @@ class _AttendanceButton extends StatelessWidget {
           backgroundColor: bgColor,
           elevation: 0,
           shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
         child: Text(
           label,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+          ),
         ),
       ),
     );

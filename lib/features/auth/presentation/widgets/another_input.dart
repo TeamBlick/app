@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 
 class AnotherInput extends StatelessWidget {
-  final String label;
-  final String hint;
-  final bool obscure;
-  final TextEditingController controller;
-
   const AnotherInput({
     super.key,
     required this.label,
@@ -14,6 +9,11 @@ class AnotherInput extends StatelessWidget {
     this.obscure = false,
   });
 
+  final String label;
+  final String hint;
+  final bool obscure;
+  final TextEditingController controller;
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -21,11 +21,7 @@ class AnotherInput extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(color: Colors.grey),
-          ),
-
+          Text(label, style: const TextStyle(color: Colors.grey)),
           TextFormField(
             controller: controller,
             obscureText: obscure,
@@ -36,9 +32,7 @@ class AnotherInput extends StatelessWidget {
               focusedBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.black, width: 2),
               ),
-            ).copyWith(
-              hintText: hint,
-            ),
+            ).copyWith(hintText: hint),
           ),
         ],
       ),

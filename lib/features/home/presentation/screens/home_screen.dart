@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:blick/screens/home/tabs/announcement/announcement_tab.dart';
 import 'package:blick/features/bus/presentation/screens/bus_tab.dart';
 import 'package:blick/features/home/presentation/screens/home_tab.dart';
+import 'package:blick/features/home/presentation/screens/announcement/announcement_tab.dart';
+import 'package:blick/features/home/presentation/widgets/bottom_nav.dart';
 import 'package:blick/features/profile/presentation/screens/profile_tab.dart';
 import 'package:blick/features/qr/presentation/screens/qr_tab.dart';
-import 'package:blick/shared/widgets/bottom_nav.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
     HomeTab(key: PageStorageKey('home')),
     BusTab(key: PageStorageKey('bus')),
     QrTab(key: PageStorageKey('qr')),
-    AlarmTab(key: PageStorageKey('alerts')),
+    AnnouncementTab(key: PageStorageKey('alerts')),
     ProfileTab(key: PageStorageKey('profile')),
   ];
 

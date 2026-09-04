@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:blick/screens/home/tabs/announcement/announcement_item.dart';
+import 'package:blick/features/home/presentation/screens/announcement/announcement_item.dart';
 
 class AnnouncementDetail extends StatelessWidget {
-  const AnnouncementDetail({
-    super.key,
-    required this.item,
-  });
+  const AnnouncementDetail({super.key, required this.item});
 
   final AnnouncementItem item;
 
@@ -14,14 +11,10 @@ class AnnouncementDetail extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        title:
-          const Text(
-              '공지사항',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+        title: const Text(
+          '공지사항',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+        ),
         backgroundColor: const Color(0xFFF5F5F5),
       ),
       body: SingleChildScrollView(
@@ -31,10 +24,7 @@ class AnnouncementDetail extends StatelessWidget {
           children: [
             Text(
               item.title,
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w700,
-              ),
+              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 20),
             ClipRRect(
@@ -51,10 +41,7 @@ class AnnouncementDetail extends StatelessWidget {
                           color: Color(0xFFB8B8B8),
                         ),
                       )
-                    : Image.network(
-                        item.imageUrl!,
-                        fit: BoxFit.cover,
-                      ),
+                    : Image.network(item.imageUrl!, fit: BoxFit.cover),
               ),
             ),
             const SizedBox(height: 20),
