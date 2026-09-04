@@ -76,7 +76,7 @@ API_BASE_URL=서버_API_주소
 
 ## 프로젝트 구조
 
-현재 코드는 기능 단위 구조로 전환하는 과정에 있습니다.
+화면과 기능 코드는 기능별로 모으고, 여러 기능에서 재사용되는 UI만 `shared`에 둡니다. 현재 구현된 구조는 다음과 같습니다.
 
 ```text
 lib/
@@ -84,18 +84,26 @@ lib/
 │   ├── fun/                 # 이스터에그 기능
 │   └── network/             # 공통 Dio 클라이언트
 ├── features/
-│   ├── auth/                # 인증
-│   ├── bus/                 # 버스 신청 및 변경
-│   ├── home/                # 홈 화면
-│   ├── profile/             # 프로필
-│   └── qr/                  # QR 출석
-├── screens/                 # features로 이동 예정인 기존 화면
+│   ├── auth/
+│   │   └── presentation/
+│   │       ├── screens/     # 로그인 화면
+│   │       └── widgets/     # 로그인 전용 입력 위젯
+│   ├── bus/
+│   │   └── presentation/screens/
+│   ├── home/
+│   │   └── presentation/
+│   │       ├── screens/     # 홈 및 공지사항 화면
+│   │       └── widgets/     # 지도, 탑승 상태, 공지 카드, 하단 네비게이션
+│   ├── profile/
+│   │   └── presentation/screens/
+│   └── qr/
+│       └── presentation/screens/
 ├── shared/
 │   └── widgets/             # 여러 기능에서 재사용하는 위젯
 └── main.dart
 ```
 
-API 연동이 진행되면 각 기능은 필요한 범위에서 다음 구조를 사용합니다.
+API 연동이 진행되면 각 기능은 필요한 계층만 추가합니다. 예를 들어 버스 API를 연결할 때는 다음과 같이 확장합니다.
 
 ```text
 features/<feature>/
@@ -103,7 +111,7 @@ features/<feature>/
 │   ├── datasource/          # Dio API 호출
 │   ├── models/              # Request/Response 모델
 │   └── repositories/        # 실제/Fake Repository 구현
-├── domain/                  # 공통 규칙이 생길 때만 추가
+├── domain/                  # 여러 화면에서 공유할 규칙이 생길 때만 추가
 └── presentation/
     ├── providers/           # 공유 상태
     ├── screens/             # 화면
@@ -111,6 +119,8 @@ features/<feature>/
 ```
 
 작은 기능에 불필요한 계층을 만들지 않고, 여러 화면에서 공유하거나 테스트 대역이 필요한 로직만 분리합니다.
+
+현재처럼 API가 아직 연결되지 않은 화면은 presentation 내부에서 관리하고, API 연동 시 해당 feature에 `data`를 추가합니다. 기능 간 참조는 다른 feature의 내부 파일보다 공개 화면/Repository 경계를 우선하며, 공통 위젯은 실제로 두 개 이상의 기능에서 사용할 때만 `shared/widgets`로 이동합니다.
 
 ## API 연동 원칙
 
