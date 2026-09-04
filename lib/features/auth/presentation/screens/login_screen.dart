@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:blick/core/fun/controllers/speki_easter_egg_controller.dart';
 import 'package:blick/core/fun/widgets/speki_easter_egg.dart';
-import 'package:blick/shared/widgets/another_input.dart';
+import 'package:blick/features/auth/presentation/widgets/another_input.dart';
 import 'package:blick/features/home/presentation/screens/home_screen.dart'; // 👈 홈 화면 import
 
 class LoginScreen extends StatefulWidget {
