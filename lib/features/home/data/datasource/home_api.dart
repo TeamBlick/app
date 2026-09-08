@@ -109,10 +109,7 @@ class HomeApi {
       }
       return body;
     } on DioException catch (error) {
-      throw ApiException(
-        '네트워크 연결을 확인해주세요.',
-        statusCode: error.response?.statusCode,
-      );
+      throw ApiException.fromDio(error);
     }
   }
 }

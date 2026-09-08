@@ -148,11 +148,8 @@ class BlickApi {
       // 서버의 공통 응답 형식(success, message, data)을 확인합니다.
       return _parse<T>(response.data, response.statusCode, fromData);
     } on DioException catch (error) {
-      // HTTP 4xx/5xx 또는 연결 실패를 화면에서 처리할 수 있는 예외로 바꿉니다.
-      throw ApiException(
-        _messageFrom(error.response?.data) ?? '네트워크 연결을 확인해주세요.',
-        statusCode: error.response?.statusCode,
-      );
+      // HTTP·timeout·연결 실패를 공통 분류 예외로 바꿉니다.
+      throw ApiException.fromDio(error);
     }
   }
 
