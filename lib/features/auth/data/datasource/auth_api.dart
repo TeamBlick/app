@@ -28,13 +28,15 @@ class AuthApi {
       }
 
       final login = LoginResponse.fromJson(Map<String, dynamic>.from(data));
-      ApiClient.setAccessToken(login.accessToken);
+      ApiClient.setTokens(
+        AuthTokens(
+          accessToken: login.accessToken,
+          refreshToken: login.refreshToken,
+        ),
+      );
       return login;
     } on DioException catch (error) {
-      throw ApiException(
-        _messageFrom(error.response?.data) ?? '네트워크 연결을 확인해주세요.',
-        statusCode: error.response?.statusCode,
-      );
+      throw ApiException.fromDio(error);
     }
   }
 

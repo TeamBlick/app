@@ -64,10 +64,7 @@ class StudentBusApi {
         data: fromJson(Map<String, dynamic>.from(data)),
       );
     } on DioException catch (error) {
-      throw ApiException(
-        '네트워크 연결을 확인해주세요.',
-        statusCode: error.response?.statusCode,
-      );
+      throw ApiException.fromDio(error);
     }
   }
 
@@ -83,10 +80,7 @@ class StudentBusApi {
         data: null,
       );
     } on DioException catch (error) {
-      throw ApiException(
-        '네트워크 연결을 확인해주세요.',
-        statusCode: error.response?.statusCode,
-      );
+      throw ApiException.fromDio(error);
     }
   }
 
