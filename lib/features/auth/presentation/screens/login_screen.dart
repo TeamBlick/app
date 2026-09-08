@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:blick/core/fun/controllers/speki_easter_egg_controller.dart';
 import 'package:blick/core/fun/widgets/speki_easter_egg.dart';
+import 'package:blick/core/network/api_exception.dart';
+import 'package:blick/features/auth/data/datasource/auth_api.dart';
 import 'package:blick/features/auth/presentation/widgets/another_input.dart';
 import 'package:blick/features/home/presentation/screens/home_screen.dart'; // 👈 홈 화면 import
 
@@ -18,6 +20,38 @@ class _LoginScreenState extends State<LoginScreen> {
   final idController = TextEditingController();
   final pwController = TextEditingController();
   final _spekiController = SpekiEasterEggController();
+  final _authApi = AuthApi();
+  bool _isSubmitting = false;
+
+  Future<void> _login() async {
+    final email = idController.text.trim();
+    final password = pwController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('이메일과 비밀번호를 입력해주세요')),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      await _authApi.login(email: email, password: password);
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message)),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -67,8 +101,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 40),
 
                         AnotherInput(
-                          label: '아이디',
-                          hint: '아이디를 입력해주세요',
+                          label: '이메일',
+                          hint: '이메일을 입력해주세요',
                           controller: idController,
                         ),
 
@@ -87,44 +121,26 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 50,
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () {
-                              final id = idController.text.trim();
-                              final pw = pwController.text.trim();
-
-                              if (id.isEmpty || pw.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('아이디와 비밀번호를 입력해주세요'),
-                                  ),
-                                );
-                                return;
-                              }
-
-                              if (id == 'admin' && pw == '1234') {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const HomeScreen(),
-                                  ),
-                                );
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('아이디 또는 비밀번호가 올바르지 않습니다'),
-                                  ),
-                                );
-                              }
-                            },
+                            onPressed: _isSubmitting ? null : _login,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF5366FB),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text(
-                              '로그인',
-                              style: TextStyle(color: Colors.white),
-                            ),
+                            child: _isSubmitting
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text(
+                                    '로그인',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
                           ),
                         ),
 

@@ -6,6 +6,17 @@ class ApiClient {
 
   static final Dio instance = _createDio();
 
+  static void setAccessToken(String? accessToken) {
+    final headers = instance.options.headers;
+
+    if (accessToken == null || accessToken.isEmpty) {
+      headers.remove('Authorization');
+      return;
+    }
+
+    headers['Authorization'] = 'Bearer $accessToken';
+  }
+
   static Dio _createDio() {
     final baseUrl = dotenv.env['API_BASE_URL'];
 
@@ -28,8 +39,8 @@ class ApiClient {
 
     dio.interceptors.add(
       LogInterceptor(
-        requestBody: true,
-        responseBody: true,
+        requestBody: false,
+        responseBody: false,
         requestHeader: true,
         responseHeader: false,
       ),
