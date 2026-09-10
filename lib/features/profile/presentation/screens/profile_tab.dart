@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:blick/core/network/api_client.dart';
 import 'package:blick/features/auth/presentation/screens/login_screen.dart';
 import 'package:blick/shared/widgets/app_logo_header.dart';
 import 'package:blick/shared/widgets/section_card.dart';
@@ -29,6 +30,7 @@ class ProfileTab extends StatelessWidget {
 
     if (shouldLogout != true) return;
 
+    ApiClient.clearTokens();
     if (!context.mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
@@ -43,10 +45,7 @@ class ProfileTab extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       child: Column(
         children: [
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: AppLogoHeader(),
-          ),
+          const Align(alignment: Alignment.centerLeft, child: AppLogoHeader()),
           const SizedBox(height: 32),
           Container(
             width: double.infinity,
@@ -65,11 +64,8 @@ class ProfileTab extends StatelessWidget {
                 ),
                 SizedBox(height: 8),
                 Text(
-                      "우성민",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                      ),
+                  "우성민",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
                 ),
               ],
             ),
@@ -94,7 +90,7 @@ class ProfileTab extends StatelessWidget {
                 SizedBox(height: 18),
                 _InfoRow(label: "전화번호", value: "010-9424-0935"),
               ],
-            )
+            ),
           ),
           const SizedBox(height: 24),
           Material(
@@ -117,12 +113,12 @@ class ProfileTab extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.red,
                     fontSize: 16,
-                    fontWeight: FontWeight.w700
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );

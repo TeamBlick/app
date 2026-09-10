@@ -5,6 +5,7 @@ import 'package:blick/core/fun/widgets/speki_easter_egg.dart';
 import 'package:blick/core/network/api_exception.dart';
 import 'package:blick/features/auth/data/datasource/auth_api.dart';
 import 'package:blick/features/auth/presentation/widgets/another_input.dart';
+import 'package:blick/features/auth/presentation/screens/signup_screen.dart';
 import 'package:blick/features/home/presentation/screens/home_screen.dart'; // 👈 홈 화면 import
 
 class LoginScreen extends StatefulWidget {
@@ -28,9 +29,9 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = pwController.text;
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('이메일과 비밀번호를 입력해주세요')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('이메일과 비밀번호를 입력해주세요')));
       return;
     }
 
@@ -45,9 +46,9 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } on ApiException catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -104,6 +105,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           label: '이메일',
                           hint: '이메일을 입력해주세요',
                           controller: idController,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
                         ),
 
                         const SizedBox(height: 40),
@@ -113,6 +116,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           hint: '비밀번호를 입력해주세요',
                           obscure: true,
                           controller: pwController,
+                          textInputAction: TextInputAction.done,
+                          onFieldSubmitted: (_) {
+                            if (!_isSubmitting) _login();
+                          },
                         ),
 
                         const SizedBox(height: 50),
@@ -145,6 +152,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
 
                         const SizedBox(height: 12),
+
+                        Center(
+                          child: TextButton(
+                            onPressed: _isSubmitting
+                                ? null
+                                : () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => const SignupScreen(),
+                                      ),
+                                    );
+                                  },
+                            child: const Text('회원가입'),
+                          ),
+                        ),
 
                         Center(
                           child: Row(
