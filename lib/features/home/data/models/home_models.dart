@@ -1,7 +1,7 @@
 class AbsentRequest {
-  const AbsentRequest({required this.reason});
-  final String reason;
-  Map<String, dynamic> toJson() => {'reason': reason};
+  const AbsentRequest({this.reason});
+  final String? reason;
+  Map<String, dynamic> toJson() => {if (reason != null) 'reason': reason};
 }
 
 class AbsentResult {
