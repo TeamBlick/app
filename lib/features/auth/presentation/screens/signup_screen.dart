@@ -1,5 +1,5 @@
 import 'package:blick/core/network/api_exception.dart';
-import 'package:blick/features/auth/data/datasource/auth_api.dart';
+import 'package:blick/features/auth/data/repositories/auth_repository.dart';
 import 'package:blick/features/auth/data/models/Signup_request.dart';
 import 'package:blick/features/auth/presentation/widgets/another_input.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +13,8 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _authApi = AuthApi();
+  final _authRepository = AuthRepository.current;
+  static final _emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
   final _usernameController = TextEditingController();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -25,6 +26,7 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isSubmitting = false;
 
   Future<void> _signup() async {
+    if (_isSubmitting) return;
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
 
@@ -37,7 +39,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
     setState(() => _isSubmitting = true);
     try {
-      await _authApi.signup(
+      await _authRepository.signup(
         SignupRequest(
           username: _usernameController.text.trim(),
           name: _emptyToNull(_nameController.text),
@@ -199,7 +201,13 @@ class _SignupScreenState extends State<SignupScreen> {
             validator: (value) {
               final text = value?.trim() ?? '';
               if (text.isEmpty) return '$label을 입력해주세요.';
-              if (label == '이메일' && !text.contains('@')) {
+              if (label == '아이디' && (text.length < 2 || text.length > 20)) {
+                return '아이디는 2~20자로 입력해주세요.';
+              }
+              if (label == '비밀번호' && value!.length < 8) {
+                return '비밀번호는 8자 이상 입력해주세요.';
+              }
+              if (label == '이메일' && !_emailPattern.hasMatch(text)) {
                 return '올바른 이메일을 입력해주세요.';
               }
               if (label == '비밀번호 확인' && value != _passwordController.text) {

@@ -3,10 +3,10 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:blick/core/fun/controllers/speki_easter_egg_controller.dart';
 import 'package:blick/core/fun/widgets/speki_easter_egg.dart';
 import 'package:blick/core/network/api_exception.dart';
-import 'package:blick/features/auth/data/datasource/auth_api.dart';
+import 'package:blick/core/network/api_client.dart';
+import 'package:blick/features/auth/data/repositories/auth_repository.dart';
 import 'package:blick/features/auth/presentation/widgets/another_input.dart';
 import 'package:blick/features/auth/presentation/screens/signup_screen.dart';
-import 'package:blick/features/home/presentation/screens/home_screen.dart'; // 👈 홈 화면 import
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,10 +21,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final idController = TextEditingController();
   final pwController = TextEditingController();
   final _spekiController = SpekiEasterEggController();
-  final _authApi = AuthApi();
+  final _authRepository = AuthRepository.current;
   bool _isSubmitting = false;
 
   Future<void> _login() async {
+    if (_isSubmitting) return;
     final email = idController.text.trim();
     final password = pwController.text;
 
@@ -38,17 +39,33 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      await _authApi.login(email: email, password: password);
+      final login = await _authRepository.login(
+        email: email,
+        password: password,
+      );
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      if (login.role != 'STUDENT') {
+        throw const ApiException('학생 계정으로 로그인해주세요.');
+      }
+      if (login.accessToken.isEmpty || login.refreshToken.isEmpty) {
+        throw const ApiException('로그인 토큰을 발급받지 못했습니다.');
+      }
+      await ApiClient.setTokens(
+        AuthTokens(
+          accessToken: login.accessToken,
+          refreshToken: login.refreshToken,
+        ),
       );
     } on ApiException catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(error.message)));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('로그인 정보를 저장하지 못했습니다. 다시 시도해주세요.')),
+      );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

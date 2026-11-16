@@ -18,7 +18,7 @@ Blick은 학생의 귀가 버스 이용을 돕는 Flutter 애플리케이션입�
 - Flutter / Dart
 - Dio: HTTP API 통신
 - flutter_dotenv: 로컬 환경변수 로드
-- flutter_secure_storage: access/refresh token 보관 예정
+- flutter_secure_storage: access/refresh token 보관
 - Riverpod: 인증 및 API 상태관리 도입 예정
 - mobile_scanner: QR 코드 인식
 - kakao_map_plugin: 카카오맵 표시
@@ -71,6 +71,8 @@ API_BASE_URL=서버_API_주소
 ```
 
 `.env`는 Git에 포함되지 않습니다. 실제 키나 토큰을 저장소에 커밋하지 마세요.
+
+Debug 빌드에서 `.env`에 `BLICK_FAKE_AUTH=true`를 설정하면 `student@example.test` / `blick-test`로 서버 없이 인증 흐름을 확인할 수 있습니다. 이 모드의 가입 계정은 앱을 종료하면 초기화됩니다.
 
 서버가 배포되기 전에는 실제 API 요청을 검증할 수 없습니다. 또한 Android 에뮬레이터나 실제 기기에서 `localhost`는 개발 서버 컴퓨터를 가리키지 않으므로, 통합 테스트 시 접근 가능한 서버 주소를 사용해야 합니다.
 

@@ -3,9 +3,38 @@ import 'dart:convert';
 import 'package:blick/core/network/api_client.dart';
 import 'package:blick/core/network/api_exception.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('학생 세션을 복원하고 로그아웃하면 저장된 토큰 쌍을 지운다', () async {
+    dotenv.loadFromString(envString: 'API_BASE_URL=https://example.test');
+    const storage = FlutterSecureStorage();
+    const key = 'blick.student.tokens.v1';
+    FlutterSecureStorage.setMockInitialValues({
+      key: jsonEncode({'accessToken': 'saved', 'refreshToken': 'refresh'}),
+    });
+
+    await ApiClient.restoreSession();
+    expect(
+      ApiClient.authenticationState.value,
+      AuthenticationState.authenticated,
+    );
+
+    await ApiClient.setTokens(
+      const AuthTokens(accessToken: 'next', refreshToken: 'next-refresh'),
+    );
+    expect(jsonDecode((await storage.read(key: key))!), {
+      'accessToken': 'next',
+      'refreshToken': 'next-refresh',
+    });
+
+    await ApiClient.clearTokens();
+    expect(await storage.read(key: key), isNull);
+    expect(ApiClient.authenticationState.value, AuthenticationState.expired);
+  });
+
   test(
     '401 requests share one refresh and retry once with the new token',
     () async {

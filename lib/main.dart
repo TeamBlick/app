@@ -1,3 +1,5 @@
+import 'package:blick/core/network/api_client.dart';
+import 'package:blick/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:blick/features/auth/presentation/screens/login_screen.dart'; // 👈 로그인 화면 import
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -14,10 +16,13 @@ Future<void> main() async {
     throw Exception('KAKAO_JAVASCRIPT_KEY가 .env에 없습니다.');
   }
 
-  AuthRepository.initialize(
-    appKey: kakaoKey,
-  );
+  AuthRepository.initialize(appKey: kakaoKey);
 
+  try {
+    await ApiClient.restoreSession();
+  } catch (_) {
+    debugPrint('저장된 로그인 상태를 불러오지 못했습니다.');
+  }
   runApp(const MyApp());
 }
 
@@ -26,12 +31,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Pretendard', // 앱 전체 기본 폰트
+    return ValueListenableBuilder<AuthenticationState>(
+      valueListenable: ApiClient.authenticationState,
+      builder: (context, state, _) => MaterialApp(
+        key: ValueKey(state),
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(fontFamily: 'Pretendard'),
+        home: state == AuthenticationState.authenticated
+            ? const HomeScreen()
+            : const LoginScreen(),
       ),
-      home: const LoginScreen(), // 👈 첫 화면을 LoginScreen으로 지정
     );
   }
 }

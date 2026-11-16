@@ -1,15 +1,18 @@
 import 'package:blick/core/network/api_client.dart';
 import 'package:blick/core/network/api_exception.dart';
+import 'package:blick/features/auth/data/models/login_request.dart';
+import 'package:blick/features/auth/data/repositories/auth_repository.dart';
 import 'package:blick/features/auth/data/models/login_response.dart';
 import 'package:blick/features/auth/data/models/Signup_request.dart';
 import 'package:blick/features/auth/data/models/Signup_response.dart';
 import 'package:dio/dio.dart';
 
-class AuthApi {
+class AuthApi implements AuthRepository {
   AuthApi({Dio? dio}) : _dio = dio ?? ApiClient.instance;
 
   final Dio _dio;
 
+  @override
   Future<LoginResponse> login({
     required String email,
     required String password,
@@ -17,7 +20,7 @@ class AuthApi {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         '/auth/login',
-        data: {'email': email, 'password': password},
+        data: LoginRequest(email: email, password: password).toJSON(),
       );
       final body = response.data;
       final data = body?['data'];
@@ -29,14 +32,12 @@ class AuthApi {
         );
       }
 
-      final login = LoginResponse.fromJson(Map<String, dynamic>.from(data));
-      ApiClient.setTokens(
-        AuthTokens(
-          accessToken: login.accessToken,
-          refreshToken: login.refreshToken,
-        ),
-      );
-      return login;
+      if (data['success'] == false) {
+        throw ApiException(_messageFrom(data) ?? '로그인에 실패했습니다.');
+      }
+      return LoginResponse.fromJson(Map<String, dynamic>.from(data));
+    } on TypeError {
+      throw const ApiException('로그인 응답 형식이 올바르지 않습니다.');
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }
@@ -46,6 +47,7 @@ class AuthApi {
   ///
   /// 회원가입은 로그인과 달리 토큰을 발급하지 않으므로, 완료 뒤 사용자가
   /// 로그인 화면에서 자격 증명을 입력하도록 합니다.
+  @override
   Future<SignupResponseData> signup(SignupRequest request) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
@@ -62,7 +64,13 @@ class AuthApi {
         );
       }
 
-      return SignupResponseData.fromJson(Map<String, dynamic>.from(data));
+      final signup = SignupResponseData.fromJson(
+        Map<String, dynamic>.from(data),
+      );
+      if (!signup.success) throw ApiException(signup.message);
+      return signup;
+    } on TypeError {
+      throw const ApiException('회원가입 응답 형식이 올바르지 않습니다.');
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }

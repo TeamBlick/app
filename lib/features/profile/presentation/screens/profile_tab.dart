@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:blick/core/network/api_client.dart';
-import 'package:blick/features/auth/presentation/screens/login_screen.dart';
 import 'package:blick/shared/widgets/app_logo_header.dart';
 import 'package:blick/shared/widgets/section_card.dart';
 
@@ -30,13 +29,14 @@ class ProfileTab extends StatelessWidget {
 
     if (shouldLogout != true) return;
 
-    ApiClient.clearTokens();
-    if (!context.mounted) return;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
-    );
+    try {
+      await ApiClient.clearTokens();
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('저장된 로그인 정보를 지우지 못했습니다.')));
+    }
   }
 
   @override
