@@ -1,10 +1,16 @@
+import 'package:blick/features/home/data/models/home_models.dart';
 import 'package:flutter/material.dart';
-import 'package:blick/features/home/presentation/screens/announcement/announcement_item.dart';
+
+String announcementDate(BuildContext context, String value) {
+  final date = DateTime.tryParse(value);
+  if (date == null) return value;
+  return MaterialLocalizations.of(context).formatCompactDate(date.toLocal());
+}
 
 class AnnouncementDetail extends StatelessWidget {
   const AnnouncementDetail({super.key, required this.item});
 
-  final AnnouncementItem item;
+  final Announcement item;
 
   @override
   Widget build(BuildContext context) {
@@ -26,27 +32,13 @@ class AnnouncementDetail extends StatelessWidget {
               item.title,
               style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
             ),
-            const SizedBox(height: 20),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                width: double.infinity,
-                height: 220,
-                color: Colors.white,
-                child: item.imageUrl == null
-                    ? const Center(
-                        child: Icon(
-                          Icons.image_outlined,
-                          size: 48,
-                          color: Color(0xFFB8B8B8),
-                        ),
-                      )
-                    : Image.network(item.imageUrl!, fit: BoxFit.cover),
-              ),
+            const SizedBox(height: 8),
+            Text(
+              '${item.author} · ${announcementDate(context, item.createdDate)}',
             ),
             const SizedBox(height: 20),
             Text(
-              item.description,
+              item.content,
               style: const TextStyle(
                 fontSize: 16,
                 height: 1.5,

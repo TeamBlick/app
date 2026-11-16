@@ -34,12 +34,12 @@ class HomeApi {
         Announcement.fromJson,
       );
 
-  Future<ApiResponse<Announcement>> markAnnouncementAsRead(
-    int announcementId,
-  ) => _request(
-    () => _dio.post('/student/announcements/$announcementId/read'),
-    Announcement.fromJson,
-  );
+  Future<void> markAnnouncementAsRead(int announcementId) async {
+    await _perform(
+      () => _dio.post('/student/announcements/$announcementId/read'),
+      allowEmpty: true,
+    );
+  }
 
   Future<ApiResponse<AbsentResult>> applyAbsent(AbsentRequest request) =>
       _request(
@@ -91,21 +91,40 @@ class HomeApi {
     final body = await _perform(request);
     final data = body['data'];
     if (data is! List) throw const ApiException('서버 응답의 data 형식이 올바르지 않습니다.');
-    return ApiResponse(
-      success: true,
-      message: body['message'] as String?,
-      data: data
-          .map((item) => fromJson(Map<String, dynamic>.from(item as Map)))
-          .toList(),
-    );
+    try {
+      return ApiResponse(
+        success: true,
+        message: body['message'] as String?,
+        data: [
+          for (final item in data)
+            fromJson(Map<String, dynamic>.from(item as Map)),
+        ],
+      );
+    } on TypeError {
+      throw const ApiException('서버 응답의 data 형식이 올바르지 않습니다.');
+    }
   }
 
-  Future<Map> _perform(Future<Response<dynamic>> Function() request) async {
+  Future<Map> _perform(
+    Future<Response<dynamic>> Function() request, {
+    bool allowEmpty = false,
+  }) async {
     try {
       final response = await request();
       final body = response.data;
+      if (allowEmpty && (body == null || body == '')) return const {};
       if (body is! Map || body['success'] != true) {
-        throw ApiException('요청에 실패했습니다.', statusCode: response.statusCode);
+        final message = body is Map ? body['message'] : null;
+        final error = body is Map ? body['error'] : null;
+        final detail = error is Map ? error['message'] : null;
+        throw ApiException(
+          detail is String
+              ? detail
+              : message is String
+              ? message
+              : '요청에 실패했습니다.',
+          statusCode: response.statusCode,
+        );
       }
       return body;
     } on DioException catch (error) {

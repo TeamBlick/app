@@ -7,17 +7,19 @@ class AnnouncementCard extends StatelessWidget {
     required this.subtitle,
     required this.date,
     required this.onTap,
+    required this.isRead,
   });
 
   final String title;
   final String subtitle;
   final String date;
   final VoidCallback onTap;
+  final bool isRead;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
+      color: isRead ? Colors.white : const Color(0xFFEEF0FF),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -54,6 +56,11 @@ class AnnouncementCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (!isRead)
+                  const Padding(
+                    padding: EdgeInsets.only(right: 8),
+                    child: Text('안 읽음', style: TextStyle(fontSize: 11)),
+                  ),
                 Text(
                   date,
                   style: const TextStyle(
