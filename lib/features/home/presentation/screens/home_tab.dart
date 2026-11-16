@@ -112,10 +112,10 @@ class _HomeTabState extends ConsumerState<HomeTab>
           ),
           const SizedBox(height: 16),
           SectionCard(
-            title: '현재위치',
+            title: widget.showMap ? '현재위치' : '테스트 경로',
             child: widget.showMap
                 ? const KakaoMapWidget()
-                : const Text('오프라인 테스트에서는 현재 위치를 확인할 수 없습니다.'),
+                : const KakaoMapWidget.demo(),
           ),
         ],
       ),

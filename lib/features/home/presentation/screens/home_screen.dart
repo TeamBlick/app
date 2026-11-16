@@ -29,10 +29,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       showMap: !repositories.isFake,
     ),
     BusTab(key: const PageStorageKey('bus'), repository: repositories.bus),
-    if (repositories.isFake)
-      const Center(child: Text('오프라인 테스트에서는 QR 출석을 사용할 수 없습니다.'))
-    else
-      const QrTab(key: PageStorageKey('qr')),
+    QrTab(key: const PageStorageKey('qr'), fake: repositories.isFake),
     AnnouncementTab(
       key: const PageStorageKey('alerts'),
       repository: repositories.announcements,
