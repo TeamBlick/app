@@ -12,11 +12,12 @@ Future<void> main() async {
 
   final kakaoKey = dotenv.env['KAKAO_JAVASCRIPT_KEY'];
 
-  if (kakaoKey == null || kakaoKey.trim().isEmpty) {
-    throw Exception('KAKAO_JAVASCRIPT_KEY가 .env에 없습니다.');
+  if (!ApiClient.useFakeAuth) {
+    if (kakaoKey == null || kakaoKey.trim().isEmpty) {
+      throw StateError('KAKAO_JAVASCRIPT_KEY가 .env에 없습니다.');
+    }
+    AuthRepository.initialize(appKey: kakaoKey);
   }
-
-  AuthRepository.initialize(appKey: kakaoKey);
 
   try {
     await ApiClient.restoreSession();
