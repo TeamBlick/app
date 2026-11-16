@@ -1,19 +1,19 @@
 import 'package:blick/core/network/api_exception.dart';
-import 'package:blick/features/auth/data/repositories/auth_repository.dart';
+import 'package:blick/features/auth/presentation/providers/auth_providers.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:blick/features/auth/data/models/Signup_request.dart';
 import 'package:blick/features/auth/presentation/widgets/another_input.dart';
 import 'package:flutter/material.dart';
 
-class SignupScreen extends StatefulWidget {
+class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  ConsumerState<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _authRepository = AuthRepository.current;
   static final _emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
   final _usernameController = TextEditingController();
   final _nameController = TextEditingController();
@@ -23,10 +23,9 @@ class _SignupScreenState extends State<SignupScreen> {
   final _classNumberController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _isSubmitting = false;
 
   Future<void> _signup() async {
-    if (_isSubmitting) return;
+    if (ref.read(signupProvider).isLoading) return;
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
 
@@ -37,28 +36,20 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    setState(() => _isSubmitting = true);
-    try {
-      await _authRepository.signup(
-        SignupRequest(
-          username: _usernameController.text.trim(),
-          name: _emptyToNull(_nameController.text),
-          email: _emailController.text.trim(),
-          studentNumber: _studentNumberController.text.trim(),
-          grade: grade,
-          classNumber: classNumber,
-          password: _passwordController.text,
-          confirmPassword: _confirmPasswordController.text,
-        ),
-      );
-      if (!mounted) return;
-      _showMessage('회원가입이 완료되었습니다. 로그인해주세요.');
-      Navigator.of(context).pop();
-    } on ApiException catch (error) {
-      if (mounted) _showMessage(error.message);
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
-    }
+    await ref
+        .read(signupProvider.notifier)
+        .submit(
+          SignupRequest(
+            username: _usernameController.text.trim(),
+            name: _emptyToNull(_nameController.text),
+            email: _emailController.text.trim(),
+            studentNumber: _studentNumberController.text.trim(),
+            grade: grade,
+            classNumber: classNumber,
+            password: _passwordController.text,
+            confirmPassword: _confirmPasswordController.text,
+          ),
+        );
   }
 
   String? _emptyToNull(String value) {
@@ -87,6 +78,16 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isSubmitting = ref.watch(signupProvider).isLoading;
+    ref.listen(signupProvider, (previous, next) {
+      if (next.hasError) {
+        final error = next.error;
+        _showMessage(error is ApiException ? error.message : '회원가입에 실패했습니다.');
+      } else if (previous?.isLoading == true && next.hasValue) {
+        _showMessage('회원가입이 완료되었습니다. 로그인해주세요.');
+        Navigator.of(context).pop();
+      }
+    });
     return Scaffold(
       appBar: AppBar(title: const Text('회원가입')),
       body: SafeArea(
@@ -153,7 +154,7 @@ class _SignupScreenState extends State<SignupScreen> {
               SizedBox(
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _isSubmitting ? null : _signup,
+                  onPressed: isSubmitting ? null : _signup,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF5366FB),
                     foregroundColor: Colors.white,
@@ -161,7 +162,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: _isSubmitting
+                  child: isSubmitting
                       ? const SizedBox(
                           width: 20,
                           height: 20,

@@ -1,15 +1,9 @@
-import 'package:blick/core/network/api_client.dart';
 import 'package:blick/core/network/api_exception.dart';
-import 'package:blick/features/auth/data/datasource/auth_api.dart';
 import 'package:blick/features/auth/data/models/Signup_request.dart';
 import 'package:blick/features/auth/data/models/Signup_response.dart';
 import 'package:blick/features/auth/data/models/login_response.dart';
 
 abstract interface class AuthRepository {
-  static final AuthRepository current = ApiClient.useFakeAuth
-      ? FakeAuthRepository()
-      : AuthApi();
-
   Future<LoginResponse> login({
     required String email,
     required String password,

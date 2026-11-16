@@ -28,6 +28,25 @@ class TokenStore {
 
 enum AuthenticationState { authenticated, expired }
 
+class SessionStudent {
+  const SessionStudent({required this.username, required this.email});
+
+  final String username;
+  final String email;
+
+  Map<String, String> toJson() => {'username': username, 'email': email};
+
+  static SessionStudent? fromJson(Object? json) {
+    if (json case {
+      'username': final String username,
+      'email': final String email,
+    }) {
+      return SessionStudent(username: username, email: email);
+    }
+    return null;
+  }
+}
+
 typedef RefreshTokens = Future<AuthTokens> Function(String refreshToken);
 
 /// 모든 실제 API가 공유하는 Dio 설정과 인증 인터셉터입니다.
@@ -97,6 +116,9 @@ class ApiClient {
   static ValueListenable<AuthenticationState> get authenticationState =>
       _shared._authenticationState;
   final Dio dio;
+  SessionStudent? _student;
+  SessionStudent? get student => _student;
+  ValueListenable<AuthenticationState> get session => _authenticationState;
   final TokenStore _tokens;
   final RefreshTokens? _refreshTokens;
   final ValueNotifier<AuthenticationState> _authenticationState = ValueNotifier(
@@ -108,12 +130,19 @@ class ApiClient {
   int _sessionVersion = 0;
   bool _clearing = false;
 
-  static Future<void> restoreSession() => _shared._restoreSession();
+  static Future<void> restoreSession() => _shared.loadSession();
   static Future<void> setTokens(AuthTokens tokens) =>
-      _shared._startSession(tokens);
-  static Future<void> clearTokens() => _shared._clearTokens();
+      _shared.startSession(tokens);
+  static Future<void> clearTokens() => _shared.endSession();
 
-  Future<void> _restoreSession() async {
+  Future<void> endSession() => _clearTokens();
+
+  void dispose() {
+    dio.close(force: true);
+    _authenticationState.dispose();
+  }
+
+  Future<void> loadSession() async {
     final raw = await _secureStorage?.read(key: _sessionKey);
     if (raw == null) return;
     try {
@@ -123,6 +152,7 @@ class ApiClient {
           value['refreshToken'] is String &&
           (value['accessToken'] as String).isNotEmpty &&
           (value['refreshToken'] as String).isNotEmpty) {
+        _student = SessionStudent.fromJson(value['student']);
         _tokens.save(
           AuthTokens(
             accessToken: value['accessToken'] as String,
@@ -144,27 +174,32 @@ class ApiClient {
     return pending;
   }
 
-  Future<void> _startSession(AuthTokens tokens) {
+  Future<void> startSession(AuthTokens tokens, {SessionStudent? student}) {
     final version = ++_sessionVersion;
     _clearing = false;
     _refreshInFlight = null;
-    return _saveTokens(tokens, version);
+    return _saveTokens(tokens, version, student);
   }
 
-  Future<void> _saveTokens(AuthTokens tokens, int version) =>
-      _serializeStorage(() async {
-        if (version != _sessionVersion) return;
-        await _secureStorage?.write(
-          key: _sessionKey,
-          value: jsonEncode({
-            'accessToken': tokens.accessToken,
-            'refreshToken': tokens.refreshToken,
-          }),
-        );
-        if (version != _sessionVersion) return;
-        _tokens.save(tokens);
-        _authenticationState.value = AuthenticationState.authenticated;
-      });
+  Future<void> _saveTokens(
+    AuthTokens tokens,
+    int version,
+    SessionStudent? student,
+  ) => _serializeStorage(() async {
+    if (version != _sessionVersion) return;
+    await _secureStorage?.write(
+      key: _sessionKey,
+      value: jsonEncode({
+        'accessToken': tokens.accessToken,
+        'refreshToken': tokens.refreshToken,
+        if (student != null) 'student': student.toJson(),
+      }),
+    );
+    if (version != _sessionVersion) return;
+    _tokens.save(tokens);
+    _student = student;
+    _authenticationState.value = AuthenticationState.authenticated;
+  });
 
   Future<void> _clearTokens({bool expireOnStorageError = false}) {
     final version = ++_sessionVersion;
@@ -178,6 +213,7 @@ class ApiClient {
       }
       if (version != _sessionVersion) return;
       _tokens.clear();
+      _student = null;
       _authenticationState.value = AuthenticationState.expired;
     }).whenComplete(() {
       if (version == _sessionVersion) _clearing = false;
@@ -200,7 +236,7 @@ class ApiClient {
     final tokens = _refreshTokens != null
         ? await _refreshTokens(refreshToken)
         : await _requestRefresh(refreshToken);
-    await _saveTokens(tokens, version);
+    await _saveTokens(tokens, version, _student);
     if (version != _sessionVersion) throw StateError('세션이 변경되었습니다.');
     return tokens;
   }

@@ -3,29 +3,27 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:blick/core/fun/controllers/speki_easter_egg_controller.dart';
 import 'package:blick/core/fun/widgets/speki_easter_egg.dart';
 import 'package:blick/core/network/api_exception.dart';
-import 'package:blick/core/network/api_client.dart';
-import 'package:blick/features/auth/data/repositories/auth_repository.dart';
+import 'package:blick/features/auth/presentation/providers/auth_providers.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:blick/features/auth/presentation/widgets/another_input.dart';
 import 'package:blick/features/auth/presentation/screens/signup_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   static final Uri _dodamLoginUri = Uri.parse('https://dodam.b1nd.com/');
 
   final idController = TextEditingController();
   final pwController = TextEditingController();
   final _spekiController = SpekiEasterEggController();
-  final _authRepository = AuthRepository.current;
-  bool _isSubmitting = false;
 
   Future<void> _login() async {
-    if (_isSubmitting) return;
+    if (ref.read(loginProvider).isLoading) return;
     final email = idController.text.trim();
     final password = pwController.text;
 
@@ -36,39 +34,9 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    setState(() => _isSubmitting = true);
-
-    try {
-      final login = await _authRepository.login(
-        email: email,
-        password: password,
-      );
-      if (!mounted) return;
-      if (login.role != 'STUDENT') {
-        throw const ApiException('학생 계정으로 로그인해주세요.');
-      }
-      if (login.accessToken.isEmpty || login.refreshToken.isEmpty) {
-        throw const ApiException('로그인 토큰을 발급받지 못했습니다.');
-      }
-      await ApiClient.setTokens(
-        AuthTokens(
-          accessToken: login.accessToken,
-          refreshToken: login.refreshToken,
-        ),
-      );
-    } on ApiException catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('로그인 정보를 저장하지 못했습니다. 다시 시도해주세요.')),
-      );
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
-    }
+    await ref
+        .read(loginProvider.notifier)
+        .submit(email: email, password: password);
   }
 
   @override
@@ -81,6 +49,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isSubmitting = ref.watch(loginProvider).isLoading;
+    ref.listen(loginProvider, (previous, next) {
+      if (!next.hasError) return;
+      final error = next.error;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error is ApiException ? error.message : '로그인에 실패했습니다.'),
+        ),
+      );
+    });
     final size = MediaQuery.of(context).size; // 👈 화면 크기 가져오기
     final logoWidth = size.width * 0.32; // 👈 화면 비율 기반 로고 크기
 
@@ -135,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: pwController,
                           textInputAction: TextInputAction.done,
                           onFieldSubmitted: (_) {
-                            if (!_isSubmitting) _login();
+                            if (!isSubmitting) _login();
                           },
                         ),
 
@@ -145,14 +123,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 50,
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: _isSubmitting ? null : _login,
+                            onPressed: isSubmitting ? null : _login,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF5366FB),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: _isSubmitting
+                            child: isSubmitting
                                 ? const SizedBox(
                                     width: 20,
                                     height: 20,
@@ -172,7 +150,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         Center(
                           child: TextButton(
-                            onPressed: _isSubmitting
+                            onPressed: isSubmitting
                                 ? null
                                 : () {
                                     Navigator.of(context).push(
