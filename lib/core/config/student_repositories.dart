@@ -17,8 +17,8 @@ class StudentRepositories {
     this.isFake = false,
   });
 
-  factory StudentRepositories.fromEnvironment({Dio? dio}) {
-    if (ApiClient.useFakeAuth) {
+  factory StudentRepositories.fromEnvironment({Dio? dio, bool? fakeMode}) {
+    if (fakeMode ?? ApiClient.useFakeAuth) {
       return StudentRepositories.fake(
         simulateNetworkFailure:
             dotenv.env['BLICK_FAKE_NETWORK_FAILURE'] == 'true',

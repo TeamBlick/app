@@ -2,13 +2,16 @@ import 'package:blick/core/config/student_repositories.dart';
 import 'package:blick/features/bus/data/repositories/bus_repository.dart';
 import 'package:blick/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets('오프라인 학생은 미탑승을 신청하고 버스를 신청·변경하고 공지를 읽는다', (tester) async {
     final repositories = StudentRepositories.fake(delay: Duration.zero);
     await tester.pumpWidget(
-      MaterialApp(home: HomeScreen(repositories: repositories)),
+      ProviderScope(
+        child: MaterialApp(home: HomeScreen(repositories: repositories)),
+      ),
     );
     await tester.pumpAndSettle();
 

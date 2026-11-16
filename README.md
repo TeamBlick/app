@@ -19,7 +19,7 @@ Blick은 학생의 귀가 버스 이용을 돕는 Flutter 애플리케이션입�
 - Dio: HTTP API 통신
 - flutter_dotenv: 로컬 환경변수 로드
 - flutter_secure_storage: access/refresh token 보관
-- Riverpod: 인증 및 API 상태관리 도입 예정
+- Riverpod: 인증과 공지·버스·탑승 상태 관리
 - mobile_scanner: QR 코드 인식
 - kakao_map_plugin: 카카오맵 표시
 

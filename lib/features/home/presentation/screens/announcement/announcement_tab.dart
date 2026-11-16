@@ -4,77 +4,41 @@ import 'package:blick/features/home/data/repositories/announcement_repository.da
 import 'package:blick/features/home/presentation/screens/announcement/announcement_detail.dart';
 import 'package:blick/features/home/presentation/widgets/announcement_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:blick/features/home/presentation/providers/announcement_provider.dart';
 
-class AnnouncementTab extends StatefulWidget {
-  const AnnouncementTab({super.key, this.repository});
+class AnnouncementTab extends ConsumerStatefulWidget {
+  const AnnouncementTab({super.key, required this.repository});
 
-  final AnnouncementRepository? repository;
+  final AnnouncementRepository repository;
 
   @override
-  State<AnnouncementTab> createState() => _AnnouncementTabState();
+  ConsumerState<AnnouncementTab> createState() => _AnnouncementTabState();
 }
 
-class _AnnouncementTabState extends State<AnnouncementTab>
+class _AnnouncementTabState extends ConsumerState<AnnouncementTab>
     with AutomaticKeepAliveClientMixin {
-  late final _repository = widget.repository ?? ApiAnnouncementRepository();
-  final _readIds = <int>{};
-  final _pendingReadIds = <int>{};
-  List<Announcement>? _announcements;
-  String? _loadError;
-  bool _loading = false;
-
   @override
   bool get wantKeepAlive => true;
 
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    if (_loading) return;
-    setState(() {
-      _loading = true;
-      _loadError = null;
-    });
-    try {
-      final announcements = await _repository.getAnnouncements();
-      if (!mounted) return;
-      setState(() => _announcements = announcements);
-    } on ApiException catch (error) {
-      if (!mounted) return;
-      setState(() => _loadError = error.message);
-    } on StateError {
-      if (!mounted) return;
-      setState(() => _loadError = '공지사항 서버 설정을 확인해주세요.');
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
   Future<void> _markAsRead(Announcement item) async {
-    if (item.read ||
-        _readIds.contains(item.id) ||
-        !_pendingReadIds.add(item.id)) {
-      return;
-    }
     try {
-      await _repository.markAsRead(item.id);
-      if (mounted) setState(() => _readIds.add(item.id));
-    } on ApiException catch (error) {
+      await ref
+          .read(announcementsProvider(widget.repository).notifier)
+          .markAsRead(item);
+    } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(error.message),
+          content: Text(
+            error is ApiException ? error.message : '읽음 상태를 변경하지 못했습니다.',
+          ),
           action: SnackBarAction(
             label: '다시 시도',
             onPressed: () => _markAsRead(item),
           ),
         ),
       );
-    } finally {
-      _pendingReadIds.remove(item.id);
     }
   }
 
@@ -88,8 +52,11 @@ class _AnnouncementTabState extends State<AnnouncementTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final items = _announcements;
-    final error = _loadError;
+    final provider = announcementsProvider(widget.repository);
+    final announcements = ref.watch(provider);
+    final items = announcements.valueOrNull;
+    final error = announcements.error;
+    Future<void> refresh() => ref.read(provider.notifier).refresh();
     return Column(
       children: [
         const SafeArea(
@@ -106,20 +73,23 @@ class _AnnouncementTabState extends State<AnnouncementTab>
         ),
         Expanded(
           child: switch (items) {
-            null when _loading => const Center(
+            null when announcements.isLoading => const Center(
               child: CircularProgressIndicator(),
             ),
-            _ when error != null => Center(
+            _ when !announcements.isLoading && error != null => Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(error, textAlign: TextAlign.center),
-                  TextButton(onPressed: _load, child: const Text('다시 시도')),
+                  Text(
+                    error is ApiException ? error.message : '공지사항을 불러오지 못했습니다.',
+                    textAlign: TextAlign.center,
+                  ),
+                  TextButton(onPressed: refresh, child: const Text('다시 시도')),
                 ],
               ),
             ),
             final items? when items.isNotEmpty => RefreshIndicator(
-              onRefresh: _load,
+              onRefresh: refresh,
               child: ListView.separated(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
@@ -131,14 +101,14 @@ class _AnnouncementTabState extends State<AnnouncementTab>
                     title: item.title,
                     subtitle: item.author,
                     date: announcementDate(context, item.createdDate),
-                    isRead: item.read || _readIds.contains(item.id),
+                    isRead: item.read,
                     onTap: () => _open(item),
                   );
                 },
               ),
             ),
             _ => RefreshIndicator(
-              onRefresh: _load,
+              onRefresh: refresh,
               child: LayoutBuilder(
                 builder: (context, constraints) => ListView(
                   physics: const AlwaysScrollableScrollPhysics(),

@@ -86,6 +86,17 @@ class Announcement {
   final String createdDate;
   final bool read;
 
+  Announcement asRead() => read
+      ? this
+      : Announcement(
+          id: id,
+          title: title,
+          content: content,
+          author: author,
+          createdDate: createdDate,
+          read: true,
+        );
+
   factory Announcement.fromJson(Map<String, dynamic> json) => Announcement(
     id: json['id'] as int,
     title: json['title'] as String,

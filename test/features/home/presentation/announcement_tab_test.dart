@@ -5,6 +5,7 @@ import 'package:blick/features/home/data/models/home_models.dart';
 import 'package:blick/features/home/data/repositories/announcement_repository.dart';
 import 'package:blick/features/home/presentation/screens/announcement/announcement_tab.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _notice = Announcement(
@@ -33,8 +34,10 @@ class _FakeRepository implements AnnouncementRepository {
 
 Future<void> _pump(WidgetTester tester, AnnouncementRepository repository) =>
     tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(body: AnnouncementTab(repository: repository)),
+      ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(body: AnnouncementTab(repository: repository)),
+        ),
       ),
     );
 

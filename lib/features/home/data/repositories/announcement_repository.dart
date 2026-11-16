@@ -52,14 +52,7 @@ class FakeAnnouncementRepository implements AnnouncementRepository {
     await _wait();
     return [
       for (final item in _items)
-        Announcement(
-          id: item.id,
-          title: item.title,
-          content: item.content,
-          author: item.author,
-          createdDate: item.createdDate,
-          read: _readIds.contains(item.id),
-        ),
+        _readIds.contains(item.id) ? item.asRead() : item,
     ];
   }
 
