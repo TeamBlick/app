@@ -72,7 +72,7 @@ API_BASE_URL=서버_API_주소
 
 `.env`는 Git에 포함되지 않습니다. 실제 키나 토큰을 저장소에 커밋하지 마세요.
 
-Debug 빌드에서 `.env`에 `BLICK_FAKE_AUTH=true`를 설정하면 `student@example.test` / `blick-test`로 서버 없이 인증 흐름을 확인할 수 있습니다. 이 모드의 가입 계정은 앱을 종료하면 초기화됩니다.
+Debug 빌드에서 `.env`에 `BLICK_FAKE_AUTH=true`를 설정하면 `student@example.test` / `blick-test`로 로그인해 공지 읽음 처리, 귀가버스 신청·변경, 미탑승 신청·취소를 확인할 수 있습니다. 가입 계정은 앱을 종료하면 초기화되며 학생 화면에서 변경한 상태는 로그아웃 시 초기화됩니다. 테스트 계정의 비밀번호를 다르게 입력하면 인증 실패를, `BLICK_FAKE_NETWORK_FAILURE=true`를 추가하면 로그인 후 학생 화면의 네트워크 오류와 재시도 UI를 확인할 수 있습니다.
 
 서버가 배포되기 전에는 실제 API 요청을 검증할 수 없습니다. 또한 Android 에뮬레이터나 실제 기기에서 `localhost`는 개발 서버 컴퓨터를 가리키지 않으므로, 통합 테스트 시 접근 가능한 서버 주소를 사용해야 합니다.
 

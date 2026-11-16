@@ -1,191 +1,178 @@
-import 'package:flutter/material.dart';
+import 'package:blick/core/network/api_exception.dart';
+import 'package:blick/features/bus/data/models/student_bus_models.dart';
+import 'package:blick/features/bus/data/repositories/bus_repository.dart';
 import 'package:blick/shared/widgets/app_logo_header.dart';
 import 'package:blick/shared/widgets/section_card.dart';
+import 'package:flutter/material.dart';
 
 class BusTab extends StatefulWidget {
-  const BusTab({super.key});
+  const BusTab({super.key, required this.repository});
+
+  final BusRepository repository;
+
   @override
   State<BusTab> createState() => _BusTabState();
 }
 
-class _BusTabState extends State<BusTab> {
+class _BusTabState extends State<BusTab> with AutomaticKeepAliveClientMixin {
+  StudentBusState? _state;
+  BusOption? _selected;
+  String? _loadError;
+  bool _loading = true;
+  bool _submitting = false;
+
   @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        children: const [
-          Padding(
-            padding: EdgeInsets.fromLTRB(8, 16, 0, 24),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: AppLogoHeader(), // 로고를 좌측으로 붙임
-            ),
-          ),
-          SectionCard(title: "버스 변경 위치", child: _BusChangeDropdown()),
-          const SizedBox(height: 16),
-          SectionCard(title: "버스 변경 사유", child: BusChangeReason()),
-        ],
-      ),
-    );
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
   }
-}
 
-class _BusChangeDropdown extends StatefulWidget {
-  const _BusChangeDropdown({super.key});
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
+    try {
+      final state = await widget.repository.getBusState();
+      if (!mounted) return;
+      setState(() {
+        _state = state;
+        _selected = null;
+      });
+    } on ApiException catch (error) {
+      if (mounted) setState(() => _loadError = error.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
-  @override
-  State<_BusChangeDropdown> createState() => _BusChangeDropdownState();
-}
+  Future<void> _submit() async {
+    final state = _state;
+    final selected = _selected;
+    if (_submitting ||
+        state == null ||
+        selected == null ||
+        selected.id == state.assigned?.id) {
+      return;
+    }
+    setState(() => _submitting = true);
+    try {
+      final String message;
+      final BusOption assigned;
+      if (state.assigned == null) {
+        final result = await widget.repository.requestBus(
+          BusRequest(
+            busId: selected.id,
+            busDestination: selected.destination.apiValue,
+          ),
+        );
+        assigned = BusOption(
+          id: result.busId ?? selected.id,
+          number: result.busNumber ?? selected.number,
+          destination: selected.destination,
+        );
+        message = '버스를 신청했습니다.';
+      } else {
+        final result = await widget.repository.changeBus(
+          BusChangeRequest(newBusId: selected.id),
+        );
+        assigned = BusOption(
+          id: selected.id,
+          number: result.newBusNumber ?? selected.number,
+          destination: selected.destination,
+        );
+        message = result.message;
+      }
+      if (!mounted) return;
+      setState(() {
+        _state = StudentBusState(choices: state.choices, assigned: assigned);
+        _selected = null;
+      });
+      _showMessage(message);
+    } on ApiException catch (error) {
+      if (mounted) _showMessage(error.message);
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
 
-class _BusChangeDropdownState extends State<_BusChangeDropdown> {
-  String selectedTerminal = "용산역";
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    super.build(context);
+    final state = _state;
+    final loadError = _loadError;
+    return ListView(
+      padding: const EdgeInsets.all(12),
       children: [
-        const Text(
-          "용산역",
-          style: TextStyle(color: Color(0xFF656565), fontSize: 18),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(8, 16, 0, 24),
+          child: Align(alignment: Alignment.centerLeft, child: AppLogoHeader()),
         ),
-        SizedBox(
-          width: 220,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              PopupMenuButton<String>(
-                position: PopupMenuPosition.under,
-                onSelected: (value) {
-                  setState(() {
-                    selectedTerminal = value; // 선택값 변경
-                  });
-                },
-                itemBuilder: (context) => const [
-                  PopupMenuItem(value: "용산역", child: Text("용산역")),
-                  PopupMenuItem(value: "동대구역", child: Text("동대구역")),
-                  PopupMenuItem(value: "대곡역", child: Text("대곡역")),
-                ],
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Container(
-                  height: 64,
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        selectedTerminal,
-                        style: const TextStyle(
-                          color: Color(0xFF4F6BFF),
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.unfold_more, color: Color(0xFF4F6BFF)),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+        SectionCard(
+          title: state?.assigned == null ? '귀가버스 신청' : '귀가버스 변경',
+          child: switch (state) {
+            _ when _loading => const Center(child: CircularProgressIndicator()),
+            _ when loadError != null => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(loadError),
+                TextButton(onPressed: _load, child: const Text('다시 시도')),
+              ],
+            ),
+            final state? => _selection(state),
+            _ => const Text('신청 가능한 버스 정보를 확인할 수 없습니다.'),
+          },
         ),
       ],
     );
   }
-}
 
-class BusChangeReason extends StatefulWidget {
-  const BusChangeReason({super.key});
-  @override
-  State<BusChangeReason> createState() => _BusChangeReasonState();
-}
-
-class _BusChangeReasonState extends State<BusChangeReason> {
-  final TextEditingController reasonController = TextEditingController();
-
-  bool get _canSubmit => reasonController.text.trim().isNotEmpty;
-
-  void _submitReason() {
-    final reason = reasonController.text.trim();
-    if (reason.isEmpty) return;
-
-    print("제출: $reason");
-
-    reasonController.clear();
-    setState(() {});
-    FocusScope.of(context).unfocus();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text("제출되었습니다."),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF4A4A4A),
-        margin: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
-  }
-
-
-  @override
-  void dispose() {
-    reasonController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _selection(StudentBusState state) {
+    final assigned = state.assigned;
+    final choices = state.choices.where((option) => option.id != assigned?.id);
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          height: 200,
-          child: TextFormField(
-            //큰 필드가 안됨 그래서 Textfrom
-            controller: reasonController,
-            maxLines: null, // expands=true와 함께 사용 시 필수
-            expands: true, //
-            keyboardType: TextInputType.multiline, //키보드도 여러줄 입력 가능하게
-            decoration: InputDecoration(
-              hintText: "버스 변경 사유를 입력해주세요",
-              border: InputBorder.none,
-            ),
-            style: TextStyle(color: Color(0xFF6A6A6A), height: 1.25),
-            onChanged: (_) {
-              setState(() {});
-            },
-          ),
-        ),
-        const SizedBox(height: 32),
-        Align(
-          alignment: Alignment.centerRight,
-          child: SizedBox(
-            height: 50,
-            child: ElevatedButton(
-              
-              child: const Text(
-                "제출하기",
-                style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
-              ),
-              onPressed: _canSubmit ? _submitReason : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: reasonController.text.trim().isNotEmpty
-                    ? const Color(0xFF4F6BFF)
-                    : const Color(0xFFB8B8B8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+        if (assigned != null)
+          Text('신청한 버스: ${assigned.number} ${assigned.destination.label}'),
+        if (choices.isEmpty)
+          const Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: Text('선택 가능한 버스가 없습니다.'),
+          )
+        else ...[
+          DropdownButton<BusOption>(
+            isExpanded: true,
+            hint: const Text('버스 선택'),
+            value: _selected,
+            items: [
+              for (final option in choices)
+                DropdownMenuItem(
+                  value: option,
+                  child: Text('${option.number} ${option.destination.label}'),
                 ),
-              ),
-            ),
+            ],
+            onChanged: _submitting
+                ? null
+                : (option) => setState(() => _selected = option),
           ),
-        ),
+          if (_submitting)
+            const LinearProgressIndicator()
+          else
+            FilledButton(
+              onPressed: _selected == null ? null : _submit,
+              child: Text(assigned == null ? '버스 신청' : '버스 변경'),
+            ),
+        ],
       ],
     );
   }

@@ -1,6 +1,5 @@
 import 'package:blick/core/network/api_exception.dart';
-import 'package:blick/features/home/data/datasource/home_api.dart';
-import 'package:blick/features/home/data/models/home_models.dart';
+import 'package:blick/features/home/data/repositories/attendance_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:blick/features/home/presentation/widgets/kakao_map_widget.dart';
 import 'package:blick/features/home/presentation/widgets/radio_button.dart';
@@ -8,45 +7,77 @@ import 'package:blick/shared/widgets/app_logo_header.dart';
 import 'package:blick/shared/widgets/section_card.dart';
 
 class HomeTab extends StatefulWidget {
-  const HomeTab({super.key, this.api});
+  const HomeTab({super.key, required this.repository, this.showMap = true});
 
-  final HomeApi? api;
+  final AttendanceRepository repository;
+  final bool showMap;
 
   @override
   State<HomeTab> createState() => _HomeTabState();
 }
 
 class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
-  late final _api = widget.api ?? HomeApi();
   String? _busState;
   bool _updating = false;
+  bool _prompting = false;
+  bool _loading = true;
+  String? _loadError;
 
   @override
   bool get wantKeepAlive => true;
 
-  Future<void> _changeAttendance(String value) async {
-    if (_updating || value == _busState) return;
-    setState(() => _updating = true);
+  @override
+  void initState() {
+    super.initState();
+    _loadAttendance();
+  }
+
+  Future<void> _loadAttendance() async {
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
     try {
-      final isAbsent = value == '미탑승';
-      String? reason;
-      if (isAbsent) {
+      final absent = await widget.repository.getAbsent();
+      if (!mounted) return;
+      setState(
+        () => _busState = switch (absent) {
+          true => '미탑승',
+          false => '탑승',
+          null => null,
+        },
+      );
+    } on ApiException catch (error) {
+      if (mounted) setState(() => _loadError = error.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _changeAttendance(String value) async {
+    if (_loading || _updating || _prompting || value == _busState) return;
+    final isAbsent = value == '미탑승';
+    String? reason;
+    if (isAbsent) {
+      _prompting = true;
+      try {
         reason = await showDialog<String>(
           context: context,
           builder: (_) => const _AbsentReasonDialog(),
         );
-        if (!mounted || reason == null) return;
+      } finally {
+        _prompting = false;
       }
-      final response = isAbsent
-          ? await _api.applyAbsent(
-              AbsentRequest(reason: reason!.isEmpty ? null : reason),
-            )
-          : await _api.cancelAbsent();
+      if (!mounted || reason == null) return;
+    }
+
+    setState(() => _updating = true);
+    try {
+      final result = await widget.repository.setAbsent(
+        absent: isAbsent,
+        reason: reason == '' ? null : reason,
+      );
       if (!mounted) return;
-      final result = response.data;
-      if (result == null || !result.success) {
-        throw ApiException(result?.message ?? '탑승 상태 변경에 실패했습니다.');
-      }
       setState(() => _busState = value);
       _showResult(result.message);
     } on ApiException catch (error) {
@@ -70,6 +101,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Widget build(BuildContext context) {
     super.build(context);
     final busState = _busState;
+    final loadError = _loadError;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -88,11 +120,17 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               children: [
                 RadioButton(
                   value: busState,
-                  onChanged: _updating ? null : _changeAttendance,
+                  onChanged: _loading || _updating ? null : _changeAttendance,
                 ),
-                if (_updating)
+                if (_loading || _updating)
                   const LinearProgressIndicator()
-                else if (busState == null)
+                else if (loadError != null) ...[
+                  Text(loadError),
+                  TextButton(
+                    onPressed: _loadAttendance,
+                    child: const Text('다시 시도'),
+                  ),
+                ] else if (busState == null)
                   const Text('기존 탑승 상태를 확인할 수 없습니다.'),
               ],
             ),
@@ -105,7 +143,12 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 : _AttendanceButton(busState: busState),
           ),
           const SizedBox(height: 16),
-          const SectionCard(title: "현재위치", child: KakaoMapWidget()),
+          SectionCard(
+            title: '현재위치',
+            child: widget.showMap
+                ? const KakaoMapWidget()
+                : const Text('오프라인 테스트에서는 현재 위치를 확인할 수 없습니다.'),
+          ),
         ],
       ),
     );
