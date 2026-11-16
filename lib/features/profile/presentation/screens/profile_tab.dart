@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:blick/features/auth/presentation/screens/login_screen.dart';
+import 'package:blick/features/auth/presentation/providers/auth_providers.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:blick/shared/widgets/app_logo_header.dart';
 import 'package:blick/shared/widgets/section_card.dart';
 
-class ProfileTab extends StatelessWidget {
+class ProfileTab extends ConsumerWidget {
   const ProfileTab({super.key});
 
-  Future<void> _handleLogout(BuildContext context) async {
+  Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
@@ -27,26 +28,26 @@ class ProfileTab extends StatelessWidget {
       },
     );
 
-    if (shouldLogout != true) return;
+    if (shouldLogout != true || !context.mounted) return;
 
-    if (!context.mounted) return;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
-    );
+    try {
+      await ref.read(authSessionProvider.notifier).logout();
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('저장된 로그인 정보를 지우지 못했습니다.')));
+    }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final student = ref.watch(authSessionProvider).valueOrNull?.student;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(12),
       child: Column(
         children: [
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: AppLogoHeader(),
-          ),
+          const Align(alignment: Alignment.centerLeft, child: AppLogoHeader()),
           const SizedBox(height: 32),
           Container(
             width: double.infinity,
@@ -55,47 +56,31 @@ class ProfileTab extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(18),
             ),
-            child: const Column(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
+                const Icon(
                   Icons.account_circle_rounded,
                   size: 72,
                   color: Color(0xFF4F6BFF),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
-                      "우성민",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                      ),
+                  student?.username ?? '학생',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
-          SectionCard(
-            title: "기본정보",
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                _InfoRow(label: "이름", value: "우성민"),
-                SizedBox(height: 18),
-                _InfoRow(label: "학번", value: "2311"),
-                SizedBox(height: 18),
-                _InfoRow(
-                  label: "도착지",
-                  value: "동대구역",
-                  valueColor: Color(0xFF4F6BFF),
-                ),
-                SizedBox(height: 18),
-                _InfoRow(label: "이메일", value: "wusm1230@dgsw.hs.kr"),
-                SizedBox(height: 18),
-                _InfoRow(label: "전화번호", value: "010-9424-0935"),
-              ],
-            )
-          ),
+          if (student != null)
+            SectionCard(
+              title: '기본정보',
+              child: _InfoRow(label: '이메일', value: student.email),
+            ),
           const SizedBox(height: 24),
           Material(
             color: Colors.transparent,
@@ -103,7 +88,7 @@ class ProfileTab extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             child: InkWell(
               borderRadius: BorderRadius.circular(30),
-              onTap: () => _handleLogout(context),
+              onTap: () => _handleLogout(context, ref),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -117,12 +102,12 @@ class ProfileTab extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.red,
                     fontSize: 16,
-                    fontWeight: FontWeight.w700
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -130,15 +115,10 @@ class ProfileTab extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.label,
-    required this.value,
-    this.valueColor = const Color(0xFF232323),
-  });
+  const _InfoRow({required this.label, required this.value});
 
   final String label;
   final String value;
-  final Color valueColor;
 
   @override
   Widget build(BuildContext context) {
@@ -161,7 +141,7 @@ class _InfoRow extends StatelessWidget {
             value,
             style: TextStyle(
               fontSize: 16,
-              color: valueColor,
+              color: const Color(0xFF232323),
               fontWeight: FontWeight.w600,
             ),
           ),

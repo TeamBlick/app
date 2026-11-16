@@ -1,7 +1,7 @@
 class AbsentRequest {
-  const AbsentRequest({required this.reason});
-  final String reason;
-  Map<String, dynamic> toJson() => {'reason': reason};
+  const AbsentRequest({this.reason});
+  final String? reason;
+  Map<String, dynamic> toJson() => {if (reason != null) 'reason': reason};
 }
 
 class AbsentResult {
@@ -85,6 +85,17 @@ class Announcement {
   final String author;
   final String createdDate;
   final bool read;
+
+  Announcement asRead() => read
+      ? this
+      : Announcement(
+          id: id,
+          title: title,
+          content: content,
+          author: author,
+          createdDate: createdDate,
+          read: true,
+        );
 
   factory Announcement.fromJson(Map<String, dynamic> json) => Announcement(
     id: json['id'] as int,

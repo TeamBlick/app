@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthTokens {
   const AuthTokens({required this.accessToken, required this.refreshToken});
@@ -25,6 +28,25 @@ class TokenStore {
 
 enum AuthenticationState { authenticated, expired }
 
+class SessionStudent {
+  const SessionStudent({required this.username, required this.email});
+
+  final String username;
+  final String email;
+
+  Map<String, String> toJson() => {'username': username, 'email': email};
+
+  static SessionStudent? fromJson(Object? json) {
+    if (json case {
+      'username': final String username,
+      'email': final String email,
+    }) {
+      return SessionStudent(username: username, email: email);
+    }
+    return null;
+  }
+}
+
 typedef RefreshTokens = Future<AuthTokens> Function(String refreshToken);
 
 /// 모든 실제 API가 공유하는 Dio 설정과 인증 인터셉터입니다.
@@ -35,8 +57,11 @@ class ApiClient {
     TokenStore? tokenStore,
     RefreshTokens? refreshTokens,
     bool? enableLogging,
+    FlutterSecureStorage? secureStorage,
+    bool offline = false,
   }) : _tokens = tokenStore ?? TokenStore(),
        _refreshTokens = refreshTokens,
+       _secureStorage = secureStorage,
        dio =
            dio ??
            Dio(
@@ -59,68 +84,160 @@ class ApiClient {
       Headers.contentTypeHeader: Headers.jsonContentType,
       Headers.acceptHeader: 'application/json',
     });
+    if (offline) {
+      this.dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            handler.reject(
+              DioException(
+                requestOptions: options,
+                type: DioExceptionType.connectionError,
+              ),
+            );
+          },
+        ),
+      );
+    }
     this.dio.interceptors.add(_AuthenticationInterceptor(this));
     if (enableLogging ?? kDebugMode) {
       this.dio.interceptors.add(_SafeLogInterceptor());
     }
   }
 
-  static final ApiClient _shared = ApiClient(baseUrl: _baseUrlFromEnv());
+  static final ApiClient _shared = ApiClient(
+    baseUrl: dotenv.env['API_BASE_URL']?.trim() ?? '',
+    secureStorage: useFakeAuth ? null : const FlutterSecureStorage(),
+    offline: useFakeAuth,
+  );
+  static const _sessionKey = 'blick.student.tokens.v1';
+  static bool get useFakeAuth =>
+      kDebugMode && dotenv.env['BLICK_FAKE_AUTH'] == 'true';
   static Dio get instance => _shared.dio;
   static ValueListenable<AuthenticationState> get authenticationState =>
       _shared._authenticationState;
   final Dio dio;
+  SessionStudent? _student;
+  SessionStudent? get student => _student;
+  ValueListenable<AuthenticationState> get session => _authenticationState;
   final TokenStore _tokens;
   final RefreshTokens? _refreshTokens;
   final ValueNotifier<AuthenticationState> _authenticationState = ValueNotifier(
     AuthenticationState.expired,
   );
+  final FlutterSecureStorage? _secureStorage;
+  Future<void> _storageQueue = Future.value();
   Future<AuthTokens>? _refreshInFlight;
+  int _sessionVersion = 0;
+  bool _clearing = false;
 
-  static String _baseUrlFromEnv() {
-    final baseUrl = dotenv.env['API_BASE_URL'];
-    if (baseUrl == null || baseUrl.trim().isEmpty) {
-      throw StateError('API_BASE_URL이 .env에 없습니다.');
-    }
-    return baseUrl;
+  static Future<void> restoreSession() => _shared.loadSession();
+  static Future<void> setTokens(AuthTokens tokens) =>
+      _shared.startSession(tokens);
+  static Future<void> clearTokens() => _shared.endSession();
+
+  Future<void> endSession() => _clearTokens();
+
+  void dispose() {
+    dio.close(force: true);
+    _authenticationState.dispose();
   }
 
-  static void setTokens(AuthTokens tokens) => _shared._setTokens(tokens);
-  static void setAccessToken(String? accessToken) {
-    if (accessToken == null || accessToken.isEmpty) {
-      _shared._clearTokens();
-      return;
+  Future<void> loadSession() async {
+    final raw = await _secureStorage?.read(key: _sessionKey);
+    if (raw == null) return;
+    try {
+      final value = jsonDecode(raw);
+      if (value is Map &&
+          value['accessToken'] is String &&
+          value['refreshToken'] is String &&
+          (value['accessToken'] as String).isNotEmpty &&
+          (value['refreshToken'] as String).isNotEmpty) {
+        _student = SessionStudent.fromJson(value['student']);
+        _tokens.save(
+          AuthTokens(
+            accessToken: value['accessToken'] as String,
+            refreshToken: value['refreshToken'] as String,
+          ),
+        );
+        _authenticationState.value = AuthenticationState.authenticated;
+        return;
+      }
+    } on FormatException {
+      // 손상된 저장값은 아래에서 삭제합니다.
     }
-    _shared._tokens.accessToken = accessToken;
-    _shared._authenticationState.value = AuthenticationState.authenticated;
+    await _secureStorage?.delete(key: _sessionKey);
   }
 
-  static void clearTokens() => _shared._clearTokens();
-  void _setTokens(AuthTokens tokens) {
+  Future<void> _serializeStorage(Future<void> Function() operation) {
+    final pending = _storageQueue.then((_) => operation());
+    _storageQueue = pending.then<void>((_) {}, onError: (Object _) {});
+    return pending;
+  }
+
+  Future<void> startSession(AuthTokens tokens, {SessionStudent? student}) {
+    final version = ++_sessionVersion;
+    _clearing = false;
+    _refreshInFlight = null;
+    return _saveTokens(tokens, version, student);
+  }
+
+  Future<void> _saveTokens(
+    AuthTokens tokens,
+    int version,
+    SessionStudent? student,
+  ) => _serializeStorage(() async {
+    if (version != _sessionVersion) return;
+    await _secureStorage?.write(
+      key: _sessionKey,
+      value: jsonEncode({
+        'accessToken': tokens.accessToken,
+        'refreshToken': tokens.refreshToken,
+        if (student != null) 'student': student.toJson(),
+      }),
+    );
+    if (version != _sessionVersion) return;
     _tokens.save(tokens);
+    _student = student;
     _authenticationState.value = AuthenticationState.authenticated;
-  }
+  });
 
-  void _clearTokens() {
-    _tokens.clear();
-    _authenticationState.value = AuthenticationState.expired;
+  Future<void> _clearTokens({bool expireOnStorageError = false}) {
+    final version = ++_sessionVersion;
+    _refreshInFlight = null;
+    _clearing = true;
+    return _serializeStorage(() async {
+      try {
+        await _secureStorage?.delete(key: _sessionKey);
+      } catch (_) {
+        if (!expireOnStorageError) rethrow;
+      }
+      if (version != _sessionVersion) return;
+      _tokens.clear();
+      _student = null;
+      _authenticationState.value = AuthenticationState.expired;
+    }).whenComplete(() {
+      if (version == _sessionVersion) _clearing = false;
+    });
   }
 
   Future<AuthTokens> refreshAccessToken() {
     final refreshToken = _tokens.refreshToken;
-    if (refreshToken == null || refreshToken.isEmpty) {
+    if (_clearing || refreshToken == null || refreshToken.isEmpty) {
       return Future<AuthTokens>.error(StateError('갱신할 refresh token이 없습니다.'));
     }
-    return _refreshInFlight ??= _performRefresh(refreshToken).whenComplete(() {
-      _refreshInFlight = null;
-    });
+    final version = _sessionVersion;
+    return _refreshInFlight ??= _performRefresh(refreshToken, version)
+        .whenComplete(() {
+          if (version == _sessionVersion) _refreshInFlight = null;
+        });
   }
 
-  Future<AuthTokens> _performRefresh(String refreshToken) async {
+  Future<AuthTokens> _performRefresh(String refreshToken, int version) async {
     final tokens = _refreshTokens != null
         ? await _refreshTokens(refreshToken)
         : await _requestRefresh(refreshToken);
-    _setTokens(tokens);
+    await _saveTokens(tokens, version, _student);
+    if (version != _sessionVersion) throw StateError('세션이 변경되었습니다.');
     return tokens;
   }
 
@@ -143,27 +260,34 @@ class ApiClient {
     );
     final body = response.data;
     final data = body is Map && body['data'] is Map ? body['data'] : body;
-    if (data is! Map || data['accessToken'] is! String) {
+    if (data is! Map ||
+        data['accessToken'] is! String ||
+        (data['accessToken'] as String).isEmpty) {
       throw StateError('토큰 갱신 응답 형식이 올바르지 않습니다.');
     }
     return AuthTokens(
       accessToken: data['accessToken'] as String,
-      refreshToken: (data['refreshToken'] as String?) ?? refreshToken,
+      refreshToken: switch (data['refreshToken']) {
+        final String rotated when rotated.isNotEmpty => rotated,
+        _ => refreshToken,
+      },
     );
   }
 }
 
-class _AuthenticationInterceptor extends QueuedInterceptor {
+class _AuthenticationInterceptor extends Interceptor {
   _AuthenticationInterceptor(this._client);
   final ApiClient _client;
   static const _retriedKey = 'authRetryAttempted';
+  static const _sessionKey = 'authSessionVersion';
   bool _isAuthRequest(RequestOptions options) =>
       options.path.startsWith('/auth/');
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (!_isAuthRequest(options)) {
+      options.extra[_sessionKey] ??= _client._sessionVersion;
       final accessToken = _client._tokens.accessToken;
-      if (accessToken != null && accessToken.isNotEmpty) {
+      if (!_client._clearing && accessToken != null && accessToken.isNotEmpty) {
         options.headers['Authorization'] = 'Bearer $accessToken';
       }
     }
@@ -176,31 +300,56 @@ class _AuthenticationInterceptor extends QueuedInterceptor {
     ErrorInterceptorHandler handler,
   ) async {
     final options = error.requestOptions;
+    final version = options.extra[_sessionKey];
+    final currentToken = _client._tokens.accessToken;
+    final sentToken = options.headers['Authorization'];
     if (error.response?.statusCode != 401 ||
         _isAuthRequest(options) ||
-        options.extra[_retriedKey] == true) {
+        version != _client._sessionVersion ||
+        currentToken == null ||
+        sentToken == null) {
       handler.next(error);
       return;
     }
+
+    if (options.extra[_retriedKey] == true) {
+      if (sentToken == 'Bearer $currentToken') await _expireSession();
+      handler.next(error);
+      return;
+    }
+
+    final String accessToken;
     try {
-      final currentToken = _client._tokens.accessToken;
-      final tokenUsedForRequest = options.headers['Authorization'];
-      // 대기 중이던 다른 요청은 refresh 완료 전의 토큰으로 401을 받을 수 있다.
-      // 이 경우 refresh를 다시 보내지 않고 새 토큰으로 한 번만 재시도한다.
-      final accessToken =
-          currentToken != null &&
-              currentToken.isNotEmpty &&
-              tokenUsedForRequest != 'Bearer $currentToken'
+      accessToken = sentToken != 'Bearer $currentToken'
           ? currentToken
           : (await _client.refreshAccessToken()).accessToken;
-      options.headers['Authorization'] = 'Bearer $accessToken';
-      options.extra[_retriedKey] = true;
-      handler.resolve(await _client.dio.fetch<Object>(options));
+    } on DioException catch (refreshError) {
+      if (version == _client._sessionVersion &&
+          const {400, 401, 403}.contains(refreshError.response?.statusCode)) {
+        await _expireSession();
+      }
+      handler.next(refreshError);
+      return;
     } catch (_) {
-      _client._clearTokens();
       handler.next(error);
+      return;
+    }
+    if (version != _client._sessionVersion) {
+      handler.next(error);
+      return;
+    }
+
+    options.headers['Authorization'] = 'Bearer $accessToken';
+    options.extra[_retriedKey] = true;
+    try {
+      handler.resolve(await _client.dio.fetch<dynamic>(options));
+    } on DioException catch (retryError) {
+      handler.next(retryError);
     }
   }
+
+  Future<void> _expireSession() =>
+      _client._clearTokens(expireOnStorageError: true);
 }
 
 /// 디버그에서만 URL 경로·상태만 기록한다. 토큰, 헤더, 본문은 절대 남기지 않는다.

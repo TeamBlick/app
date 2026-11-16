@@ -3,54 +3,40 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:blick/core/fun/controllers/speki_easter_egg_controller.dart';
 import 'package:blick/core/fun/widgets/speki_easter_egg.dart';
 import 'package:blick/core/network/api_exception.dart';
-import 'package:blick/features/auth/data/datasource/auth_api.dart';
+import 'package:blick/features/auth/presentation/providers/auth_providers.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:blick/features/auth/presentation/widgets/another_input.dart';
-import 'package:blick/features/home/presentation/screens/home_screen.dart'; // 👈 홈 화면 import
+import 'package:blick/features/auth/presentation/screens/signup_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   static final Uri _dodamLoginUri = Uri.parse('https://dodam.b1nd.com/');
 
   final idController = TextEditingController();
   final pwController = TextEditingController();
   final _spekiController = SpekiEasterEggController();
-  final _authApi = AuthApi();
-  bool _isSubmitting = false;
 
   Future<void> _login() async {
+    if (ref.read(loginProvider).isLoading) return;
     final email = idController.text.trim();
     final password = pwController.text;
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('이메일과 비밀번호를 입력해주세요')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('이메일과 비밀번호를 입력해주세요')));
       return;
     }
 
-    setState(() => _isSubmitting = true);
-
-    try {
-      await _authApi.login(email: email, password: password);
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-    } on ApiException catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.message)),
-      );
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
-    }
+    await ref
+        .read(loginProvider.notifier)
+        .submit(email: email, password: password);
   }
 
   @override
@@ -63,6 +49,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isSubmitting = ref.watch(loginProvider).isLoading;
+    ref.listen(loginProvider, (previous, next) {
+      if (!next.hasError) return;
+      final error = next.error;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error is ApiException ? error.message : '로그인에 실패했습니다.'),
+        ),
+      );
+    });
     final size = MediaQuery.of(context).size; // 👈 화면 크기 가져오기
     final logoWidth = size.width * 0.32; // 👈 화면 비율 기반 로고 크기
 
@@ -104,6 +100,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           label: '이메일',
                           hint: '이메일을 입력해주세요',
                           controller: idController,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
                         ),
 
                         const SizedBox(height: 40),
@@ -113,6 +111,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           hint: '비밀번호를 입력해주세요',
                           obscure: true,
                           controller: pwController,
+                          textInputAction: TextInputAction.done,
+                          onFieldSubmitted: (_) {
+                            if (!isSubmitting) _login();
+                          },
                         ),
 
                         const SizedBox(height: 50),
@@ -121,14 +123,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 50,
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: _isSubmitting ? null : _login,
+                            onPressed: isSubmitting ? null : _login,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF5366FB),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: _isSubmitting
+                            child: isSubmitting
                                 ? const SizedBox(
                                     width: 20,
                                     height: 20,
@@ -145,6 +147,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
 
                         const SizedBox(height: 12),
+
+                        Center(
+                          child: TextButton(
+                            onPressed: isSubmitting
+                                ? null
+                                : () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => const SignupScreen(),
+                                      ),
+                                    );
+                                  },
+                            child: const Text('회원가입'),
+                          ),
+                        ),
 
                         Center(
                           child: Row(
