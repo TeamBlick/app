@@ -3,6 +3,7 @@ import 'package:blick/core/network/api_exception.dart';
 import 'package:blick/core/network/api_response.dart';
 import 'package:blick/features/auth/data/models/Signup_request.dart';
 import 'package:blick/features/auth/data/models/Signup_response.dart';
+import 'package:blick/features/qr/data/qr_attendance.dart';
 import 'package:dio/dio.dart';
 
 /// 학생 앱에서 사용하는 Swagger v1 API를 호출하는 Dio datasource입니다.
@@ -45,6 +46,13 @@ class BlickApi {
       _get('/student/bus/schedule', query: {'date': date});
   Future<ApiResponse<dynamic>> getStudentApplicationPeriod(String date) =>
       _get('/student/application-period', query: {'date': date});
+
+  Future<ApiResponse<QrAttendanceResult>> checkQrAttendance(
+    QrAttendanceRequest request,
+  ) => _request<QrAttendanceResult>(
+    () => _dio.post('/student/bus/check/qr', data: request.toJson()),
+    (data) => QrAttendanceResult.fromJson(_asMap(data)),
+  );
 
   // 학생: 공지 조회와 읽음 처리
   Future<ApiResponse<dynamic>> getStudentAnnouncements() =>

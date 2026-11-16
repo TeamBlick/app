@@ -1,15 +1,35 @@
+import 'package:blick/core/network/api_client.dart';
+import 'package:blick/core/network/api_exception.dart';
+import 'package:blick/features/qr/data/qr_attendance.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class QrTab extends StatefulWidget {
-  const QrTab({super.key});
+  const QrTab({super.key, this.fake, this.demoRepository});
+
+  final bool? fake;
+
+  final FakeQrAttendanceRepository? demoRepository;
 
   @override
   State<QrTab> createState() => _QrTabState();
 }
 
-class _QrTabState extends State<QrTab> {
-  final controller = MobileScannerController(formats: [BarcodeFormat.qrCode]);
+class _QrTabState extends State<QrTab> with AutomaticKeepAliveClientMixin {
+  late final _demoRepository =
+      widget.demoRepository ??
+      ((widget.fake ?? ApiClient.useFakeAuth)
+          ? FakeQrAttendanceRepository()
+          : null);
+  bool _checkingDemo = false;
+  String? _demoMessage;
+
+  @override
+  bool get wantKeepAlive => _demoRepository != null;
+
+  MobileScannerController? _controller;
+  MobileScannerController get controller =>
+      _controller ??= MobileScannerController(formats: [BarcodeFormat.qrCode]);
   bool _detected = false;
   bool _changingCamera = false;
 
@@ -50,14 +70,73 @@ class _QrTabState extends State<QrTab> {
     }
   }
 
+  Future<void> _chooseDemoCode(FakeQrAttendanceRepository repository) async {
+    if (_checkingDemo) return;
+    final code = await showModalBottomSheet<DemoQrCode>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final option in DemoQrCode.values)
+              ListTile(
+                title: Text(option.label),
+                onTap: () => Navigator.pop(sheetContext, option),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || code == null) return;
+
+    setState(() {
+      _checkingDemo = true;
+      _demoMessage = null;
+    });
+    try {
+      final result = await repository.check(code);
+      if (mounted) setState(() => _demoMessage = result.message);
+    } on ApiException catch (error) {
+      if (mounted) setState(() => _demoMessage = error.message);
+    } finally {
+      if (mounted) setState(() => _checkingDemo = false);
+    }
+  }
+
   @override
   void dispose() {
-    controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+    final demoRepository = _demoRepository;
+    if (demoRepository != null) {
+      final message = _demoMessage;
+      return Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_checkingDemo)
+                  const CircularProgressIndicator()
+                else if (message != null)
+                  Text(message),
+                FilledButton(
+                  onPressed: _checkingDemo
+                      ? null
+                      : () => _chooseDemoCode(demoRepository),
+                  child: const Text('테스트 QR 선택'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       body: Stack(
         children: [
